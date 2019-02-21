@@ -1,0 +1,26 @@
+{
+  "name": "cogniapi",
+  "version": "1.0.0",
+  "description": "Vision & Language APIs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/devis12/CogniAPI.git"
+  },
+  "author": "devis12",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/devis12/CogniAPI/issues"
+  },
+  "homepage": "https://github.com/devis12/CogniAPI#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "jest": "^24.1.0",
+    "node-fetch": "^2.3.0"
+  }
+}
