@@ -15,16 +15,16 @@ const statusLogic = require('../logic/status_logic.js');
 router.get('/status', (req, res) => {
     statusLogic.hello()
         .then( data => {
-            res.status(200)
-                .json(  {   datetime: new Date(),
-                            msg: data
-                        });
+            res.status(200).json({
+                datetime: new Date(),
+                msg: data
+            });
         })
         .catch(e => {
-           res.status(500)
-               .json(   {   datetime: new Date(),
-                            msg: ''
-                        });
+           rres.status(500).json({
+               datetime: new Date(),
+               msg: '' + e
+           });
         });
 });
 

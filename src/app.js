@@ -16,9 +16,12 @@ app.use(bodyParser.json());
 
 //set up routers for v1 app
 const statusRouter = require('./v1/routes/status');
+const azureTestRouter = require('./v1/routes/azure');
 app.use('/v1', statusRouter);
+app.use('/v1', azureTestRouter);
 
 //set up routers for latest version app
 app.use('/', statusRouter);
+app.use('/', azureTestRouter);
 
 module.exports = app;
