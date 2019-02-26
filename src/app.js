@@ -17,11 +17,14 @@ app.use(bodyParser.json());
 //set up routers for v1 app
 const statusRouter = require('./v1/routes/status');
 const azureTestRouter = require('./v1/routes/azure');
+const gCloudTestRouter = require('./v1/routes/google_cloud');
 app.use('/v1', statusRouter);
 app.use('/v1', azureTestRouter);
+app.use('/v1', gCloudTestRouter);
 
 //set up routers for latest version app
 app.use('/', statusRouter);
 app.use('/', azureTestRouter);
+app.use('/', gCloudTestRouter);
 
 module.exports = app;

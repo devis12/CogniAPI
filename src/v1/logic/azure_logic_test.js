@@ -85,7 +85,7 @@ createAccount.then((result) => {
     console.log(result.key2);
     // Creating the Cognitive Services credentials
     // This requires a key corresponding to the service being used (i.e. text-analytics, etc)
-    credentials = new CognitiveServicesCredentials(serviceKey)
+    credentials = new CognitiveServicesCredentials(serviceKey);
 }).catch((err) => {
     console.log('An error ocurred');
     console.dir(err, {depth: null, colors: true});

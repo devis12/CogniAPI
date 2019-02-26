@@ -1,27 +1,20 @@
 /*
-*   App router for azure vision API testing
+*   App router for google cloud vision API testing
 *
 *   @author: Devis
 */
 
+//'use strict';
 const express = require('express');
 const router = express.Router();
 
 //azure logic implemented just for testing purpose
-const azureLogicTEST = require('../logic/azure_logic_test');
+const googleLogicTEST = require('../logic/gcloud_logic_test');
 
 // azure analyze remote image just for testing purpose
-router.get('/azure/analyze', (req, res) => {
-    let analyseRemoteImage;
-    /*
-    if(req.query.nf == null){// do the call with client libraries
-        analyseRemoteImage = azureLogicTEST.analyseRemoteImage;
-    }else{ // do the call with node-fetch
-        analyseRemoteImage = azureLogicTEST.analyseRemoteImageFetch;
-    }*/
+router.get('/gcloud/analyze', (req, res) => {
 
-    analyseRemoteImage = azureLogicTEST.analyseRemoteImageFetch; // erase this ROW when you decomment above
-    analyseRemoteImage(req.query.url)
+    googleLogicTEST.analyseRemoteImage(req.query.url)
         .then( data => {
             res.status(200).json({
                 datetime: new Date(),
