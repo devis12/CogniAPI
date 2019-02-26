@@ -62,6 +62,3 @@ typings/
 
 # folder for WebStorm Jetbrains IDE configuration
 .idea/
-
-# folder with personal doc
-personal_doc/

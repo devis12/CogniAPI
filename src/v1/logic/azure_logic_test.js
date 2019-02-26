@@ -6,8 +6,8 @@
 
 const fetch = require('node-fetch');
 
-const azure1 = require('../../api_url_keys').azure1;
-const azure2 = require('../../api_url_keys').azure2;
+const azure1 = require('../../../credentials/api_url_keys').azure1;
+const azure2 = require('../../../credentials/api_url_keys').azure2;
 
 const subscriptionKey = azure2.key;
 
