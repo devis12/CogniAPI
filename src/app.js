@@ -10,9 +10,16 @@ const bodyParser = require('body-parser');
 const app = express();
 
 //middlewares
-app.use(express.static('static'));
-app.use(bodyParser.json());
+app.use(express.static('views'));// folder in which to put the static files (html, css, js client)
+app.use(bodyParser.json()); // read json
+//middlewares (just for the widget)
+app.use(bodyParser.urlencoded({ extended: true })); // read form enctype data
+app.set('view engine', 'ejs'); // set the engine render ejs for dynamic building of html pages with ejs tags
 
+
+//widget router (simple GUI renderer in order to test the API)
+const widgetRouter = require('./v1/routes/widget_router');
+app.use('/', widgetRouter);
 
 //set up routers for v1 app
 const statusRouter = require('./v1/routes/status');

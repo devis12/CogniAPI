@@ -1,0 +1,30 @@
+<div class="container jumbotron">
+    <h3 class="mb-5">Uploading images</h3>
+
+    <div class="input-group">
+        <div class="custom-file">
+            <input type="file" class="custom-file-input" accept="image/png, image/jpeg" id="groupImages" multiple>
+            <label class="custom-file-label" for="groupImages">Choose file</label>
+        </div>
+    </div>
+
+    <div class="input-group mt-2">
+        <input type="password" class="form-control" id="pwd" value="" placeholder="Secret password" aria-label="Small" aria-describedby="inputGroup-sizing-sm">
+    </div>
+
+    <p id="pwdAlert" class="mt-1 text-center text-danger invisible">Password is required!</p>
+
+    <div class="row text-center mt-4">
+        <div class="col-2"></div>
+        <div class="col-8">
+            <button id="uploadBtn" class="btn btn-danger btn-lg" type="button" onclick="upload(document.getElementById('pwd').value)">Upload</button>
+        </div>
+        <div class="col-2"></div>
+    </div>
+</div>
+
+<div id="resultsContainer" class="row text-center">
+    <div class="col-3"></div>
+    <div class="col-6 text-center" id="progressBar"></div>
+    <div class="col-3"></div>
+</div>

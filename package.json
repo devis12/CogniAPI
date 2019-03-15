@@ -4,8 +4,6 @@
   "description": "Vision & Language APIs",
   "main": "server.js",
   "scripts": {
-    "compile": "chmod +x ./utils/setup.sh",
-    "prepare": "chmod +x ./utils/setup.sh",
     "start": "node server",
     "postinstall": "./utils/setup.sh",
     "test": "jest"

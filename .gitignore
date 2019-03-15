@@ -62,3 +62,6 @@ typings/
 
 # folder for WebStorm Jetbrains IDE configuration
 .idea/
+
+#folder for personal annotations
+personal_notes/

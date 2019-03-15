@@ -3,13 +3,18 @@
 *
 *   @author: Devis
 */
-const azureUrl1 = "https://westcentralus.api.cognitive.microsoft.com/vision/v1.0";
-const azureUrl2 = "https://westcentralus.api.cognitive.microsoft.com/vision/v2.0";
+const azureUrlVision = "https://westeurope.api.cognitive.microsoft.com/vision/v2.0";
 
-const azureKey1 = "1c5fef3d8a9e4dd9bc18fc9603b353bc";
-const azureKey2 = "9c33b98694a64d8d8fc7a07d63a15fae";
+const azureVisionKey1 = "cb497c76ce864d56af112ca82600a4dd";
+const azureVisionKey2 = "218ef8fbeaad48cfad2caa1bb7ebd8b7";
+
+const azureUrlFace = "https://westeurope.api.cognitive.microsoft.com/face/v1.0";
+const azureFaceKey1 = "cec281c4ca8c4994b64fc9c1e681e4f1";
+const azureFaceKey2 = "cec281c4ca8c4994b64fc9c1e681e4f1";
 
 module.exports = {
-    azure1: {url: azureUrl1, key: azureKey1},
-    azure2: {url: azureUrl2, key: azureKey2}
+    azure1V: {url: azureUrlVision, key: azureVisionKey1},
+    azure2V: {url: azureUrlVision, key: azureVisionKey2},
+    azure1F: {url: azureUrlFace, key: azureFaceKey1},
+    azure2F: {url: azureUrlFace, key: azureFaceKey2}
 };

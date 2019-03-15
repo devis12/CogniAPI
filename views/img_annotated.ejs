@@ -1,0 +1,95 @@
+<style>
+    .renderjson a { text-decoration: none; }
+    .renderjson .disclosure { color: crimson;
+        font-size: 150%; }
+    .renderjson .syntax { color: grey; }
+    .renderjson .string { color: darkred; }
+    .renderjson .number { color: darkcyan; }
+    .renderjson .boolean { color: blueviolet; }
+    .renderjson .key    { color: darkblue; }
+    .renderjson .keyword { color: blue; }
+    .renderjson .object.syntax { color: lightseagreen; }
+    .renderjson .array.syntax  { color: orange; }
+</style>
+
+<script src="js/renderjson.js"></script>
+
+<%  for(imgAnnotated of imgAnnotations){%>
+    <div class="mt-4 mb-4">
+        <!--IMG BOX-->
+        <div class="row">
+            <div class="col-3"></div>
+            <div class="col-6">
+                <img class="d-block w-50 ml-auto mr-auto" src="<%= imgAnnotated.imgUrl%>">
+            </div>
+            <div class="col-3"></div>
+        </div>
+
+        <!--Azure Computer Vision & Google Cloud Vision Results BOX-->
+        <div class="row mr-5 ml-5 mt-2">
+            <div class="col-6 alert-primary">
+                <h5 class="text-center">Azure Computer Vision</h5>
+                <div id="AVdest<%= imgAnnotated.imgUrl%>"></div>
+
+                <h5 class="text-center">Azure Face</h5>
+                <div id="AFdest<%= imgAnnotated.imgUrl%>"></div>
+            </div>
+            <div class="col-6 alert-warning">
+                <h5 class="text-center">Google Cloud Vision</h5>
+                <div id="Gdest<%= imgAnnotated.imgUrl%>"></div>
+            </div>
+        </div>
+
+        <!--CogniApi (Combined Schema) Results BOX-->
+        <div class="row mr-5 ml-5 mt-1">
+            <div class="col alert-success">
+                <h5 class="text-center">CogniAPI</h5>
+                <div id="Cdest<%= imgAnnotated.imgUrl%>"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="hr"></div>
+
+    <script>
+
+        document.getElementById("AVdest<%= imgAnnotated.imgUrl%>").appendChild(
+            renderjson//.set_show_by_default(true)
+            //.set_show_to_level(2)
+            //.set_sort_objects(true)
+            //.set_icons('+', '-')
+                .set_max_string_length(100)
+                (
+                        <%- JSON.stringify(imgAnnotated.azureV)%>
+                ));
+        document.getElementById("AFdest<%= imgAnnotated.imgUrl%>").appendChild(
+            renderjson//.set_show_by_default(true)
+            //.set_show_to_level(2)
+            //.set_sort_objects(true)
+            //.set_icons('+', '-')
+                .set_max_string_length(100)
+                (
+                        <%- JSON.stringify(imgAnnotated.azureF)%>
+                ));
+        document.getElementById("Gdest<%= imgAnnotated.imgUrl%>").appendChild(
+            renderjson//.set_show_by_default(true)
+            //.set_show_to_level(2)
+            //.set_sort_objects(true)
+            //.set_icons('+', '-')
+                .set_max_string_length(100)
+                (
+                        <%- JSON.stringify(imgAnnotated.gCloud)%>
+                ));
+        document.getElementById("Cdest<%= imgAnnotated.imgUrl%>").appendChild(
+            renderjson//.set_show_by_default(true)
+            //.set_show_to_level(2)
+            //.set_sort_objects(true)
+            //.set_icons('+', '-')
+                .set_max_string_length(100)
+                (
+
+                ));
+    </script>
+<%  }%>
+

@@ -6,12 +6,11 @@
 
 const fetch = require('node-fetch');
 
-const azure1 = require('../../../credentials/api_url_keys').azure1;
-const azure2 = require('../../../credentials/api_url_keys').azure2;
+const azure2V = require('../../../credentials/api_url_keys').azure2V;
 
-const subscriptionKey = azure2.key;
+const subscriptionKeyV = azure2V.key;
 
-const uriBase = azure2.url + '/analyze';
+const uriBaseVision = azure2V.url + '/analyze';
 
 function analyseRemoteImageFetch(imageUrl){
     return new Promise((resolve, reject) => {
@@ -23,7 +22,7 @@ function analyseRemoteImageFetch(imageUrl){
             'language': 'en'
         };
 
-        let uriBQ = uriBase + '?'; //uriBQ will be uri base with the query string params
+        let uriBQ = uriBaseVision + '?'; //uriBQ will be uri base with the query string params
         for(let p in params){
             uriBQ += p + "=" + params[p] + "&";
         }
@@ -35,15 +34,57 @@ function analyseRemoteImageFetch(imageUrl){
             body: '{"url": ' + '"' + imageUrl + '"}',
             headers: {
                 'Content-Type': 'application/json',
-                'Ocp-Apim-Subscription-Key' : subscriptionKey
+                'Ocp-Apim-Subscription-Key' : subscriptionKeyV
             }
         })
-        .then(res => {
-            if(!res.ok)//res.status<200 || res.status >=300
-                reject({err_status: res.status});
+            .then(res => {
+                if(!res.ok)//res.status<200 || res.status >=300
+                    reject({err_status: res.status});
 
-            res.json().then(json => resolve(json)).catch(e => reject(e));
-        }).catch(e => reject(e));
+                res.json().then(json => resolve(json)).catch(e => reject(e));
+            }).catch(e => reject(e));
+
+    });
+}
+
+const azure1F = require('../../../credentials/api_url_keys').azure1F;
+
+const subscriptionKeyF = azure1F.key;
+
+const uriBaseFace = azure1F.url + '/detect';
+
+function faceRemoteImageFetch(imageUrl){
+    return new Promise((resolve, reject) => {
+
+        // Request parameters.
+        const params = {
+            'returnFaceId': 'true',
+            'returnFaceLandmarks': 'false',
+            'returnFaceAttributes': 'age,gender,headPose,smile,facialHair,glasses,' +
+                'emotion,hair,makeup,occlusion,accessories,blur,exposure,noise'
+        };
+
+        let uriBQ = uriBaseFace + '?'; //uriBQ will be uri base with the query string params
+        for(let p in params){
+            uriBQ += p + "=" + params[p] + "&";
+        }
+        uriBQ = uriBQ.slice(0,uriBQ.length - 1);//erase last &
+
+        fetch(uriBQ, {
+            method: 'POST',
+            qs: JSON.stringify(params),
+            body: '{"url": ' + '"' + imageUrl + '"}',
+            headers: {
+                'Content-Type': 'application/json',
+                'Ocp-Apim-Subscription-Key' : subscriptionKeyF
+            }
+        })
+            .then(res => {
+                if(!res.ok)//res.status<200 || res.status >=300
+                    reject({err_status: res.status});
+
+                res.json().then(json => resolve(json)).catch(e => reject(e));
+            }).catch(e => reject(e));
 
     });
 }
@@ -52,25 +93,19 @@ function analyseRemoteImageFetch(imageUrl){
 /*
 const msRestAzure = require('ms-rest-azure');
 const CognitiveServicesManagement = require('azure-arm-cognitiveservices');
-const SubscriptionId = 'your-subscription-key';
-const ResourceGroup = 'your-resource-group-name';
-const ResourceName = 'resource-name';
+const SubscriptionId = '8d12d792-7603-4265-a8a2-290cdc5c4ef7';
+const ResourceGroup = 'cogni-api';
+const ResourceName = 'cogni-api';
 let client;
 
 let createAccount = msRestAzure.interactiveLogin().then((credentials) => {
     client = new CognitiveServicesManagement(credentials, SubscriptionId);
-    return client.accounts.create(ResourceGroup, ResourceName, {
-        sku: {
-            name: 'F0'
-        },
-        kind: 'ComputerVision',
-        location: 'westus',
-        properties: {}
-    });
+    return client;
 }).catch((err) => {
     console.log('An error ocurred');
     console.dir(err, {depth: null, colors: true});
 });
+
 
 //TODO  try to change with msRestAzure
 const CognitiveServicesCredentials = require('ms-rest-azure').CognitiveServicesCredentials;
@@ -82,7 +117,8 @@ createAccount.then((result) => {
     return client.accounts.listKeys(ResourceGroup, ResourceName);
 }).then((result) => {
     serviceKey = result.key1;
-    console.log(result.key2);
+    console.log('Azure Cognitive Service Computer Vision Key: ' + result.key1);
+    console.log('Azure Cognitive Service Computer Vision Key: ' + result.key2);
     // Creating the Cognitive Services credentials
     // This requires a key corresponding to the service being used (i.e. text-analytics, etc)
     credentials = new CognitiveServicesCredentials(serviceKey);
@@ -91,12 +127,13 @@ createAccount.then((result) => {
     console.dir(err, {depth: null, colors: true});
 });
 
+
 const ComputerVisionClient = require('azure-cognitiveservices-computervision');
 
 function analyseRemoteImage(imageUrl){
     return new Promise((resolve, reject) => {
 
-        let client = new ComputerVisionClient(credentials, 'https://westus.api.cognitive.microsoft.com');
+        let client = new ComputerVisionClient({'Ocp-Apim-Subscription-Key' : subscriptionKey}, 'https://westus.api.cognitive.microsoft.com');
         //let fileStream = require('fs').createReadStream('pathToSomeImage.jpg');
         client.analyzeImageInStreamWithHttpOperationResponse(imageUrl, { //you can pass the fileStream here
             visualFeatures: ['Categories', 'Tags', 'Description', 'Color', 'Faces', 'ImageType', 'Adult'],
@@ -111,7 +148,6 @@ function analyseRemoteImage(imageUrl){
         });
 
     });
-}*/
-
-//module.exports = {analyseRemoteImageFetch, analyseRemoteImage};
-module.exports = {analyseRemoteImageFetch};
+}
+*/
+module.exports = {analyseRemoteImageFetch, faceRemoteImageFetch /*, analyseRemoteImage*/};
