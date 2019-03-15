@@ -14,10 +14,16 @@
 
     <p id="pwdAlert" class="mt-1 text-center text-danger invisible">Password is required!</p>
 
-    <div class="row text-center mt-4">
+    <div class="row text-center">
         <div class="col-2"></div>
         <div class="col-8">
-            <button id="uploadBtn" class="btn btn-danger btn-lg" type="button" onclick="upload(document.getElementById('pwd').value)">Upload</button>
+            <label class="mr-2" for="herokuCheck">Test on Heroku</label>
+            <input type="checkbox" id="herokuTest" name="herokuCheck" checked> <br />
+
+            <button id="uploadBtn" class="btn btn-danger btn-lg mt-2" type="button"
+                    onclick="upload(document.getElementById('pwd').value, document.getElementById('herokuTest').checked)">
+                Upload
+            </button>
         </div>
         <div class="col-2"></div>
     </div>

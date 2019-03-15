@@ -4,17 +4,18 @@
 *   @author: Devis
 */
 
+//in order to read env variables
+require('dotenv').config();
+
 const fetch = require('node-fetch');
 
-const azure2V = require('../../../credentials/api_url_keys').azure2V;
+const subscriptionKeyV = process.env.AZURE_VISION_KEY1;
 
-const subscriptionKeyV = azure2V.key;
-
-const uriBaseVision = azure2V.url + '/analyze';
+const uriBaseVision = 'https://westeurope.api.cognitive.microsoft.com/vision/v2.0/analyze';
 
 function analyseRemoteImageFetch(imageUrl){
     return new Promise((resolve, reject) => {
-
+        console.log('azure comp vision request for ' + imageUrl);
         // Request parameters.
         const params = {
             'visualFeatures': 'Tags,Categories,Description,Color,Faces,ImageType,Adult',
@@ -47,15 +48,13 @@ function analyseRemoteImageFetch(imageUrl){
     });
 }
 
-const azure1F = require('../../../credentials/api_url_keys').azure1F;
+const subscriptionKeyF = process.env.AZURE_FACE_KEY1;
 
-const subscriptionKeyF = azure1F.key;
-
-const uriBaseFace = azure1F.url + '/detect';
+const uriBaseFace = 'https://westeurope.api.cognitive.microsoft.com/face/v1.0/detect';
 
 function faceRemoteImageFetch(imageUrl){
     return new Promise((resolve, reject) => {
-
+        console.log('azure face request for ' + imageUrl);
         // Request parameters.
         const params = {
             'returnFaceId': 'true',

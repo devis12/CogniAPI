@@ -24,6 +24,7 @@
     "azure-arm-cognitiveservices": "^2.4.1",
     "azure-cognitiveservices-computervision": "^3.2.1",
     "body-parser": "^1.18.3",
+    "dotenv": "^7.0.0",
     "ejs": "^2.6.1",
     "express": "^4.16.4",
     "jest": "^24.1.0",

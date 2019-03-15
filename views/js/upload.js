@@ -1,6 +1,5 @@
 /*  Upload wrapper function */
-function upload(pwd){
-
+function upload(pwd, herokuTest){
     //check validity of parameter
     if(!checkUploadParams(pwd))
         return;
@@ -18,7 +17,10 @@ function upload(pwd){
                     //SET POST REQUEST WITH GENERATED URI BY A FORM
                     let form = document.createElement('form');
                     form.setAttribute('method', 'POST');
-                    form.setAttribute('action', 'http://localhost:3000');//[TODO change this to actual API call when not testing]
+                    if(herokuTest)
+                        form.setAttribute('action', 'https://cogni-api.herokuapp.com');
+                    else
+                        form.setAttribute('action', 'http://localhost:3000');//[TODO change this to actual API call when not testing]
 
                     let hiddenField = document.createElement("input");
                     //length of array
