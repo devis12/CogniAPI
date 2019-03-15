@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server",
-    "postinstall": "./utils/setup.sh",
+    "postinstall": "chmod u+x ./utils/setup.sh && ./utils/setup.sh",
     "test": "jest"
   },
   "repository": {

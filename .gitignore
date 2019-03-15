@@ -65,3 +65,6 @@ typings/
 
 #folder for personal annotations
 personal_notes/
+
+#ignore gcloud credentials json
+./credentials/cogni-api-26d59482f626.json
