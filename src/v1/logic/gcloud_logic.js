@@ -50,7 +50,7 @@ function analyseBatchRemoteImages(imageUrls){
         console.log(JSON.stringify(request));
 
         client
-            .annotateImage(request)
+            .batchAnnotateImages(request)
             .then(response => {
                 console.log('Response from gcloud vision for batch request is the following:');
                 console.log(response);
