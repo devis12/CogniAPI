@@ -8,20 +8,12 @@ const express = require('express');
 const router = express.Router();
 
 //azure logic implemented just for testing purpose
-const azureLogicTEST = require('../logic/azure_logic_test');
+const azureLogic = require('../logic/azure_logic');
 
 // azure analyze remote image just for testing purpose
 router.get('/azure/analyze', (req, res) => {
-    let analyseRemoteImage;
 
-    if(req.query.nf == null){// do the call with client libraries
-        analyseRemoteImage = azureLogicTEST.analyseRemoteImage;
-    }else{ // do the call with node-fetch
-        analyseRemoteImage = azureLogicTEST.analyseRemoteImageFetch;
-    }
-
-    //analyseRemoteImage = azureLogicTEST.analyseRemoteImage; // erase this ROW when you decomment above
-    analyseRemoteImage(req.query.url)
+    azureLogic.analyseRemoteImage(req.query.url)
         .then( data => {
             res.status(200).json({
                 datetime: new Date(),
@@ -50,7 +42,7 @@ router.get('/azure/analyze', (req, res) => {
 router.get('/azure/face', (req, res) => {
 
     //analyseRemoteImage = azureLogicTEST.analyseRemoteImage; // erase this ROW when you decomment above
-    azureLogicTEST.faceRemoteImageFetch(req.query.url)
+    azureLogic.faceRemoteImage(req.query.url)
         .then( data => {
             res.status(200).json({
                 datetime: new Date(),
@@ -73,6 +65,53 @@ router.get('/azure/face', (req, res) => {
                 msg: err_msg
             });
         });
+});
+
+// azure add face to face group
+router.post('/azure/addFace/:loggedUser', (req, res) => {
+
+    let imageUrl = req.body.imageUrl;
+    let target = req.body.target;
+    let userData = req.body.userData;
+    let loggedUser = req.params.loggedUser;
+    /*console.log("SERVER SIDE - ADD FACE NAME");
+    console.log("imageUrl: " + imageUrl);
+    console.log("target: " + target);
+    console.log("userData: " + userData);
+    console.log("loggedUser: " + loggedUser);*/
+
+    if(imageUrl && target && userData && loggedUser){
+        azureLogic.addToFaceGroup(imageUrl, target, userData, loggedUser)
+            .then( data => {
+                res.status(200).send('Added face correctly for user ' + loggedUser);
+            })
+            .catch(e => {
+                res.status(400).send(e);
+            });
+    }else{
+        res.status(400).send('Invalid Data');
+    }
+
+});
+
+// azure train face group
+router.post('/azure/trainFace/:loggedUser', (req, res) => {
+
+    let loggedUser = req.params.loggedUser;
+
+
+    if(loggedUser){
+        azureLogic.trainFaceGroup(loggedUser)
+            .then( data => {
+                res.status(200).send('Training face group phase has started correctly for user ' + loggedUser);
+            })
+            .catch(e => {
+                res.status(400).send(e);
+            });
+    }else{
+        res.status(400).send('Invalid Data');
+    }
+
 });
 
 module.exports = router;

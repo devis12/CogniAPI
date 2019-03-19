@@ -22,9 +22,9 @@ const widgetRouter = require('./v1/routes/widget_router');
 app.use('/', widgetRouter);
 
 //set up routers for v1 app
-const statusRouter = require('./v1/routes/status');
-const azureTestRouter = require('./v1/routes/azure');
-const gCloudTestRouter = require('./v1/routes/google_cloud');
+const statusRouter = require('./v1/routes/status'); // just to test health of the endpoint
+const azureTestRouter = require('./v1/routes/azure'); // to test azure computer vision & azure face apis
+const gCloudTestRouter = require('./v1/routes/google_cloud');// to test google cloud vision apis
 app.use('/v1', statusRouter);
 app.use('/v1', azureTestRouter);
 app.use('/v1', gCloudTestRouter);

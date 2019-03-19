@@ -1,3 +1,9 @@
+<%#
+    Page for json object (returned by the cognitive services) analysis
+    Used to explore the returned packets, but also to help the system
+    in the fase of face recognition (matching faces in a batch)
+%>
+
 <style>
     .renderjson a { text-decoration: none; }
     .renderjson .disclosure { color: crimson;
@@ -16,6 +22,7 @@
 
 <%  for(imgAnnotated of imgAnnotations){%>
     <div class="mt-4 mb-4">
+
         <!--IMG BOX-->
         <div class="row">
             <div class="col-3"></div>
@@ -27,6 +34,8 @@
 
         <!--Azure Computer Vision & Google Cloud Vision Results BOX-->
         <div class="row mr-5 ml-5 mt-2">
+
+            <!--Box Azure Computer Vision & Azure Face-->
             <div class="col-6 alert-primary">
                 <h5 class="text-center">Azure Computer Vision</h5>
                 <div id="AVdest<%= imgAnnotated.imgUrl%>"></div>
@@ -34,10 +43,13 @@
                 <h5 class="text-center">Azure Face</h5>
                 <div id="AFdest<%= imgAnnotated.imgUrl%>"></div>
             </div>
+
+            <!--Box Google Cloud Vision-->
             <div class="col-6 alert-warning">
                 <h5 class="text-center">Google Cloud Vision</h5>
                 <div id="Gdest<%= imgAnnotated.imgUrl%>"></div>
             </div>
+
         </div>
 
         <!--CogniApi (Combined Schema) Results BOX-->
@@ -50,7 +62,30 @@
 
     </div>
 
-    <div class="hr"></div>
+    <%# The following script will put a box for every azure face detected, if the user wants to relate some
+        user data (possibly a name+surname) she/he'll perform it bu clicking Recognize  %>
+    <%  if(user != null){
+            for(azureFace of imgAnnotated.azureF){
+    %>
+        <div class="row alert-light mb-1 mr-5 ml-5">
+            In future image submissions recognize <%= azureFace.faceId%> as ... <br />
+            <div class="input-group">
+                <input type="text" class="form-control" placeholder="Name" id="name_<%= azureFace.faceId%>">
+                <input type="hidden" id="target_<%= azureFace.faceId%>"
+                       value="<%= azureFace.faceRectangle.left%>,<%= azureFace.faceRectangle.top%>,<%= azureFace.faceRectangle.width%>,<%= azureFace.faceRectangle.height%>">
+                <button onclick="addToFaceGroup('<%= imgAnnotated.imgUrl%>',
+                                                document.getElementById('target_<%= azureFace.faceId%>').value,
+                                                document.getElementById('name_<%= azureFace.faceId%>').value,
+                                                '<%= user%>')">
+                    Recognize
+                </button>
+            </div>
+        </div>
+    <%      }
+        }
+    %>
+
+    <div class="hr mb-5"></div>
 
     <script>
 
@@ -93,3 +128,18 @@
     </script>
 <%  }%>
 
+<%# The following script will put a button in order to give a visual interface which allows to train the system  %>
+
+<%  if(user != null){ %>
+    <div class="alert alert-info ml-5 mr-5 text-center" role="alert">
+        <h4 class="alert-heading">Train the system!</h4>
+        <p>
+            If you successfully help me to recognize some people, I suggest you to push the button below in order to make me train, so
+            I can recognize your relatives, friends, colleagues and acquaintances better next time
+        </p>
+        <hr>
+        <div class="text-center ml-auto mr-auto">
+            <button type="button" class="btn btn-outline-primary text-center" onclick="train('<%= user%>')">TRAIN</button>
+        </div>
+    </div>
+<%  } %>

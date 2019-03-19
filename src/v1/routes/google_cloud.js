@@ -9,12 +9,13 @@ const express = require('express');
 const router = express.Router();
 
 //azure logic implemented just for testing purpose
-const googleLogicTEST = require('../logic/gcloud_logic_test');
+const googleLogic = require('../logic/gcloud_logic');
 
 // azure analyze remote image just for testing purpose
 router.get('/gcloud/analyze', (req, res) => {
 
-    googleLogicTEST.analyseRemoteImage(req.query.url)
+    //googleLogicTEST.analyseBatchRemoteImages([req.query.url, req.query.url, req.query.url]) //trying batch method
+    googleLogic.analyseRemoteImage(req.query.url)
         .then( data => {
             res.status(200).json({
                 datetime: new Date(),

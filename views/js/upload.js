@@ -1,5 +1,14 @@
+/*  UPLOAD IMAGES & PERFORM POST REQUEST TO THE EXPRESS SERVER IN ORDER TO MAKE HIM CALL THE COGNITIVE SERVICES AND
+    (LATER) COMBINE THE RESULTS
+* */
+
+//variable in order to decide to which url perform the request during development (herokuapp url or localhost)
+let herokuTest = false;
+if(window.location.hostname == 'cogni-api.herokuapp.com')
+    herokuTest = true;
+
 /*  Upload wrapper function */
-function upload(pwd, herokuTest){
+function upload(pwd, username){
     //check validity of parameter
     if(!checkUploadParams(pwd))
         return;
@@ -11,42 +20,19 @@ function upload(pwd, herokuTest){
         .then(token => {
             //perform file(s) uploading
             uploadFiles(token)
+
                 .then( urlImages => {
 
+                    //generated url for the uploaded images
                     urlImages = JSON.parse(urlImages);
-                    //SET POST REQUEST WITH GENERATED URI BY A FORM
-                    let form = document.createElement('form');
-                    form.setAttribute('method', 'POST');
-                    if(herokuTest)
-                        form.setAttribute('action', 'https://cogni-api.herokuapp.com');
-                    else
-                        form.setAttribute('action', 'http://localhost:3000');//[TODO change this to actual API call when not testing]
-
-                    let hiddenField = document.createElement("input");
-                    //length of array
-                    hiddenField.setAttribute("type", "hidden");
-                    hiddenField.setAttribute("name", 'urlNum');
-                    hiddenField.setAttribute("value", urlImages.length);
-                    form.appendChild(hiddenField);
-
-                    //file passed one by one
-                    for(let i =0 ; i < urlImages.length; i++){
-                        hiddenField = document.createElement("input");
-                        hiddenField.setAttribute("type", "hidden");
-                        hiddenField.setAttribute("name", 'url'+i);
-                        hiddenField.setAttribute("value", urlImages[i]);
-                        form.appendChild(hiddenField);
-                    }
-
-                    document.body.appendChild(form);
-                    form.submit();
-
+                    postAnalysis(urlImages, username);//submit them through a post request directed to the express server
                 })
 
                 .catch( error => {
                     console.log(error);
                     $('#progressBar').html('<p class=\'text-danger text-center\'>Uploading failed!</p>');
                 });
+
         })
 
         .catch( error => {
@@ -67,18 +53,21 @@ function checkUploadParams(pwd){
     if($('#groupImages').prop('files').length < 1){
         alert('You didn\'t select any file');
         return false;
+
     }else if($('#groupImages').prop('files').length > 16){
         alert('Sorry! You can\'t select more than 16 images');
         return false;
-    }else if(pwd == null || pwd == ''){
+
+    }else if(pwd == null || pwd == ''){//password is necessary in order to perform the upload
         $('#pwdAlert').removeClass('invisible');
         $('#pwdAlert').addClass('visible');
         return false;
+
     }else
         return true;
 }
 
-/*  Perform auth with given pwd and get the token necessary in order to perform the upload */
+/*  Perform auth with given pwd and get the token necessary in order to perform the actual files upload */
 function uploadAuth(pwd){
     return new Promise((resolve, reject) => {
         let form_pwd = new FormData();
@@ -93,7 +82,7 @@ function uploadAuth(pwd){
             data: form_pwd,
             type: 'post',
             success: function (php_script_response) {
-                resolve(php_script_response);
+                resolve(php_script_response);//otp token to use for actual files upload is in the response
             },
             error: function (php_script_response) {
                 reject(php_script_response);
@@ -113,9 +102,11 @@ function uploadFiles(token){
 
         //add file to the form one by one
         for(let i=0; i<$('#groupImages').prop('files').length; i++){
+            //append one file per time with name 'file' + i ('file0', 'file1', 'file2',..)
             form_data.append('file'+i, $('#groupImages').prop('files')[i]);
         }
 
+        //otp token to use for files upload
         form_data.append('secret', token);
 
         $.ajax({
@@ -128,6 +119,7 @@ function uploadFiles(token){
             data: form_data,
             type: 'post',
             success: function(php_script_response){
+                console.log(php_script_response);
                 resolve(php_script_response);// array of generated url for the uploaded images
             },
             error: function (php_script_response) {
@@ -136,6 +128,48 @@ function uploadFiles(token){
         });
     });
 
+}
+
+/*  JS Client side function which will perform a post request with the generated urls (for the uploaded imgs),
+*   so the express server can contact the cognitive service apis and combine the result via the implemented processing*/
+function postAnalysis(urlImages, username){
+    //SET POST REQUEST WITH GENERATED URL BY A FORM
+    let form = document.createElement('form');
+    form.setAttribute('method', 'POST');
+    if(herokuTest)
+        form.setAttribute('action', 'https://cogni-api.herokuapp.com');
+    else
+        form.setAttribute('action', 'http://localhost:3000');//[TODO change this to actual API call when not testing]
+
+    //set username in case of authenticated user (silly not protected form of auth, given the context)
+    if(username != null && username != ''){
+        let hiddenFieldUsername = document.createElement("input");
+        //adding username field
+        hiddenFieldUsername.setAttribute("type", "hidden");
+        hiddenFieldUsername.setAttribute("name", 'username');
+        hiddenFieldUsername.setAttribute("value", username);
+        form.appendChild(hiddenFieldUsername);
+    }
+
+    //length of image urls that has to be analyzed
+    let hiddenField = document.createElement("input");
+    //length of array
+    hiddenField.setAttribute("type", "hidden");
+    hiddenField.setAttribute("name", 'urlNum');
+    hiddenField.setAttribute("value", urlImages.length);
+    form.appendChild(hiddenField);
+
+    //file passed one by one
+    for(let i =0 ; i < urlImages.length; i++){
+        hiddenField = document.createElement("input");
+        hiddenField.setAttribute("type", "hidden");
+        hiddenField.setAttribute("name", 'url'+i);
+        hiddenField.setAttribute("value", urlImages[i]);
+        form.appendChild(hiddenField);
+    }
+
+    document.body.appendChild(form);
+    form.submit();//Perform POST request
 }
 
 /*  Handle input file label in order to get the user a basic feedback*/
