@@ -16,13 +16,17 @@ const annotateFeatures = [
 ];
 
 //functions to perform single image annotation
-function analyseRemoteImage(imageUrl){
+function analyseRemoteImage(imageUrl, customFeatures){
     return new Promise((resolve, reject) => {
         console.log('gcloud vision request for ' + imageUrl);
         const request = {
             image: {source: {imageUri: imageUrl}},
             features: annotateFeatures,
         };
+
+        if(customFeatures)//custom features
+            request['features'] = customFeatures;
+
         client
             .annotateImage(request)
             .then(response => {
@@ -64,4 +68,37 @@ function analyseBatchRemoteImages(imageUrls){
     });
 }
 
-module.exports = {analyseRemoteImage, analyseBatchRemoteImages};
+/*  Utility function in order to delete unnecessary data from the tag detection and then
+*   return just labels and relative scores (take only the ones which are above the minScore threshold)*/
+function filterTags(gcloudJson, minScore){
+    if(minScore == null)//threshold tolerance for tags
+        minScore = 0.0;
+    minScore = Number.parseFloat(minScore);
+
+    let retObj = {};
+
+    //landmark annotations
+    retObj['landmarks'] = [];
+    for(let landMarkAnn of gcloudJson[0]['landmarkAnnotations']){
+        if(Number.parseFloat(landMarkAnn['score']) > minScore)
+            retObj['landmarks'].push({'name': landMarkAnn['description'], 'score': Number.parseFloat(landMarkAnn['score'])});
+    }
+
+    //logo annotations
+    retObj['logos'] = [];
+    for(let logoAnn of gcloudJson[0]['logoAnnotations']){
+        if(Number.parseFloat(logoAnn['score']) > minScore)
+            retObj['logos'].push({'name': logoAnn['description'], 'score': Number.parseFloat(logoAnn['score'])});
+    }
+
+    //logo annotations
+    retObj['tags'] = [];
+    for(let labelAnn of gcloudJson[0]['labelAnnotations']){
+        if(Number.parseFloat(labelAnn['score']) > minScore)
+            retObj['tags'].push({'name': labelAnn['description'], 'score': Number.parseFloat(labelAnn['score'])});
+    }
+
+    return retObj;
+}
+
+module.exports = {analyseRemoteImage, analyseBatchRemoteImages, filterTags};

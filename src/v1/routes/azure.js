@@ -114,4 +114,31 @@ router.post('/azure/trainFace/:loggedUser', (req, res) => {
 
 });
 
+// azure analyze remote image (just for tags, description & categories)
+router.get('/azure/tags', (req, res) => {
+    azureLogic.analyseRemoteImage(req.query.url, 'Tags,Categories,Description')
+        .then( data => {
+            res.status(200).json({
+                datetime: new Date(),
+                msg: azureLogic.filterTags(data, req.query.minscore)
+            });
+        })
+        .catch(e => {
+            let err_status;
+            let err_msg = {};
+            if(e.err_status != null){
+                err_status = e.err_status;
+            }else{
+                err_status = 503;
+                err_msg = '' + e;
+            }
+
+            res.status(err_status).json({
+                datetime: new Date(),
+                status: err_status,
+                msg: err_msg
+            });
+        });
+});
+
 module.exports = router;

@@ -13,7 +13,7 @@ const azureCompVision = require('./azure_logic');
 //Face utilities in order to combine, merge & cross check data
 const faceUtilities = require('./faceUtilities');
 
-/*  Multiple analysis of an image performed by three main service:
+/*  Multiple analysis of an image performed by three main services:
         -Google Cloud Vision
         -Azure Computer Vision
         -Azure Face
@@ -44,4 +44,32 @@ function multipleAnalysisRemoteImage(imageUrl, loggedUser){
 }
 
 
-module.exports = {multipleAnalysisRemoteImage};
+/*  Multiple analysis of an image performed by two main services:
+        -Google Cloud Vision
+        -Azure Computer Vision
+* */
+function multipleTagsAnalysisRemoteImage(imageUrl, minScore){
+    return new Promise((resolve, reject) => {
+        console.log('Request tags for ' + imageUrl);
+        let pGCloudV = gcloudVision.analyseRemoteImage(imageUrl, [
+            {type:'LANDMARK_DETECTION'}, {type:'LOGO_DETECTION'}, {type:'LABEL_DETECTION'}]);
+        let pAzureV = azureCompVision.analyseRemoteImage(imageUrl, 'Tags,Categories,Description');
+
+        Promise.all([pGCloudV, pAzureV])
+            .then( values => {
+
+                let jsonCombineRes = {
+                    imgUrl: imageUrl,
+                    gCloud: gcloudVision.filterTags(values[0], minScore),
+                    azureV: azureCompVision.filterTags(values[1], minScore)
+                };
+
+                resolve(jsonCombineRes);
+            })
+
+            .catch(e => reject(e));
+
+    });
+}
+
+module.exports = {multipleAnalysisRemoteImage, multipleTagsAnalysisRemoteImage};

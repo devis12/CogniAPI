@@ -16,7 +16,7 @@ const subscriptionKeyV = process.env.AZURE_VISION_KEY1;
 //url for accessing the azure computer vision api services
 const uriBaseVision = 'https://westeurope.api.cognitive.microsoft.com/vision/v2.0/analyze';
 
-function analyseRemoteImage(imageUrl){
+function analyseRemoteImage(imageUrl, visualFeatures){
     return new Promise((resolve, reject) => {
         console.log('azure comp vision request for ' + imageUrl);//TODO debugging
 
@@ -26,6 +26,9 @@ function analyseRemoteImage(imageUrl){
             'details': 'Celebrities,Landmarks',
             'language': 'en'
         };
+
+        if(visualFeatures)//custom features
+            params['visualFeatures'] = visualFeatures;
 
         let uriBQ = uriBaseVision + '?'; //uriBQ will be uri base with the query string params
         for(let p in params){
@@ -50,6 +53,43 @@ function analyseRemoteImage(imageUrl){
             }).catch(e => reject(e));
 
     });
+}
+
+/*  Utility function in order to delete unnecessary data from the tag detection and then
+*   return just labels and relative scores (take only the ones which are above the minScore threshold)*/
+function filterTags(azureJson, minScore){
+    if(minScore == null)//threshold tolerance for tags
+        minScore = 0.0;
+    minScore = Number.parseFloat(minScore);
+
+    let retObj = {};
+
+    //categories annotations
+    retObj['categories'] = [];
+    for(let category of azureJson['categories']){
+        if(Number.parseFloat(category['score']) > minScore)
+            retObj['categories'].push(category);
+    }
+
+    //tags annotations
+    retObj['tags'] = [];
+    for(let tagAnn of azureJson['tags']){
+        if(Number.parseFloat(tagAnn['confidence']) > minScore)
+            retObj['tags'].push({'name': tagAnn['name'], 'score': Number.parseFloat(tagAnn['confidence'])});
+    }
+
+    //logo annotations
+    retObj['generic_tags'] = azureJson['description']['tags'];
+
+
+    //tags annotations
+    retObj['captions'] = [];
+    for(let captionAnn of azureJson['description']['captions']){
+        if(Number.parseFloat(captionAnn['confidence']) > minScore)
+            retObj['captions'].push({'name': captionAnn['text'], 'score': Number.parseFloat(captionAnn['confidence'])});
+    }
+
+    return retObj;
 }
 
 //key for accessing the azure face api services
@@ -362,4 +402,6 @@ function findUserDataPersistedIds(faceList, persistedFaceIds) {
     });
 }
 
-module.exports = {analyseRemoteImage, faceRemoteImage, createFaceGroup, addToFaceGroup, trainFaceGroup, findSimilar};
+module.exports = {  analyseRemoteImage, faceRemoteImage, createFaceGroup,
+                    addToFaceGroup, trainFaceGroup, findSimilar,
+                    filterTags};
