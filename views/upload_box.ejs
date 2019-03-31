@@ -1,19 +1,9 @@
 <div class="container jumbotron">
     <h3 class="mb-5">Uploading images</h3>
 
-    <%# Silly way of authentication in order to persist some faces with related user data on Azure Face Services %>
-    <!--Authentication Box -->
-    <div class="input-group mb-3">
-        <div class="input-group-prepend">
-            <span class="input-group-text" id="basic-addon">Who are you? </span>
-        </div>
-        <input type="text" class="form-control" id="usernameInput" name="username" placeholder="Username" aria-label="Username" aria-describedby="basic-addon">
-    </div>
     <div class="alert alert-info" role="alert">
-        A simple way of authentication in order to help the system recognize faces you've already submitted and supplied with a name
-        <span class="font-weight-bold">(Optional)</span>
+        You're now logged as <%= user%>
     </div>
-    <!--END of Authentication Box -->
 
     <!-- Input file box -->
     <div class="input- mt-4">
@@ -37,8 +27,7 @@
         <div class="col-2"></div>
         <div class="col-8">
             <button id="uploadBtn" class="btn btn-danger btn-lg mt-2" type="button"
-                    onclick="upload(document.getElementById('pwd').value,
-                                    document.getElementById('usernameInput').value)">
+                    onclick="upload(document.getElementById('pwd').value, '<%= user%>')">
                 Upload
             </button>
         </div>

@@ -13,6 +13,12 @@ const azureCompVision = require('./azure_logic');
 //Face utilities in order to combine, merge & cross check data
 const faceUtilities = require('./faceUtilities');
 
+//safety tags utilities
+const safetyUtilities = require('./safetyUtilities');
+
+//colorinfo tags utilities
+const colorInfoUtilities = require('./colorInfoUtilities');
+
 /*  Multiple analysis of an image performed by three main services:
         -Google Cloud Vision
         -Azure Computer Vision
@@ -29,7 +35,29 @@ function multipleAnalysisRemoteImage(imageUrl, loggedUser){
             //apply to google cloud vision faceAnnotations the same ids which azure provides for each face
             values[0]['faceAnnotations'] = faceUtilities.matchFaces(values[0][0]['faceAnnotations'], values[2]);
 
-            let jsonCombineRes = {imgUrl: imageUrl, gCloud: values[0], azureV: values[1], azureF: values[2]};
+            let jsonCombineRes = {
+                annotationDate: new Date(),
+                imgUrl: imageUrl,
+                gCloud: values[0],
+                azureV: values[1],
+                azureF: values[2]
+            };
+            jsonCombineRes['cogniAPI'] = {};//add field for cogniAPI data
+            console.log("AZURE SAFETY");
+            console.log(values[1]['adult']);
+            console.log("GOOGLE SAFETY");
+            console.log(values[0][0]['safeSearchAnnotation']);
+            jsonCombineRes['cogniAPI']['safety'] = safetyUtilities.buildSafetyTag(values[1]['adult'], values[0][0]['safeSearchAnnotation']);
+
+
+            console.log("AZURE COLORS");
+            console.log(values[1]['color']);
+            console.log("GOOGLE COLORINFO");
+            console.log(values[0][0]['imagePropertiesAnnotation']['dominantColors']);
+            jsonCombineRes['cogniAPI']['colorInfo'] = colorInfoUtilities.buildColorInfoTag(
+                                                        values[1]['color'],
+                                                        values[0][0]['imagePropertiesAnnotation']['dominantColors']);
+
             if(loggedUser){
                 //add tag in case you find a similar faces, already registered by the logged user
                 azureCompVision.findSimilar(

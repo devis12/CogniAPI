@@ -25,6 +25,7 @@
     "ejs": "^2.6.1",
     "express": "^4.16.4",
     "jest": "^24.1.0",
-    "node-fetch": "^2.3.0"
+    "node-fetch": "^2.3.0",
+    "request-promise-native": "^1.0.7"
   }
 }

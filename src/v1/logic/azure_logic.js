@@ -58,9 +58,6 @@ function analyseRemoteImage(imageUrl, visualFeatures){
 /*  Utility function in order to delete unnecessary data from the tag detection and then
 *   return just labels and relative scores (take only the ones which are above the minScore threshold)*/
 function filterTags(azureJson, minScore){
-    if(minScore == null)//threshold tolerance for tags
-        minScore = 0.0;
-    minScore = Number.parseFloat(minScore);
 
     let retObj = {};
 
@@ -141,7 +138,7 @@ const faceGroupSuffix = '_cogni_fg';
 /*  Given a groupName instantiate a LargeFaceList on azure with that name (if doesn't exist yet)
 * */
 function createFaceGroup(loggedUser){
-    let groupName = loggedUser + faceGroupSuffix;
+    let groupName = (loggedUser + faceGroupSuffix).toLowerCase();//fix bug azure largelistface id
     return new Promise((resolve, reject) => {
         console.log('azure face request for creating the following face group ' + groupName);//TODO debugging
 
@@ -176,7 +173,7 @@ function createFaceGroup(loggedUser){
 /*  Given a groupName instantiate a LargeFaceList on azure with that name (if doesn't exist yet)
 * */
 function addToFaceGroup(imageUrl, target, userData, loggedUser){
-    let groupName = loggedUser + faceGroupSuffix;
+    let groupName = (loggedUser + faceGroupSuffix).toLowerCase();//fix bug azure largelistface id
     return new Promise((resolve, reject) => {
         //console.log("azure face request for adding a face (" + imageUrl + ") to the following face group " + groupName);//TODO debugging
 
@@ -220,7 +217,7 @@ function addToFaceGroup(imageUrl, target, userData, loggedUser){
 /*  Call the method which performs a call to the api in order to instantiate a new face group
 * */
 function trainFaceGroup(loggedUser){
-    let groupName = loggedUser + faceGroupSuffix;
+    let groupName = (loggedUser + faceGroupSuffix).toLowerCase();//fix bug azure largelistface id
     return new Promise((resolve, reject) => {
         console.log('azure face request for training the following face group ' + groupName);//TODO debugging
 
@@ -255,7 +252,7 @@ function trainFaceGroup(loggedUser){
     first place
 */
 function findSimilar(loggedUser, imgAnnotation){
-    let groupName = loggedUser + faceGroupSuffix;
+    let groupName = (loggedUser + faceGroupSuffix).toLowerCase();//fix bug azure largelistface id
     return new Promise((resolve, reject) => {
 
         let faceIds = []; //stored the face id (not persisted) in the same order for easily perform some operations later

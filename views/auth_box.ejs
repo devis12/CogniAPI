@@ -1,0 +1,33 @@
+<div class="container jumbotron">
+    <h3 class="mb-5">Sign-in</h3>
+
+    <%# Silly way of authentication in order to persist some faces with related user data on Azure Face Services %>
+    <!--Authentication Box -->
+    <div class="input-group mb-3">
+        <div class="input-group-prepend">
+            <span class="input-group-text" id="basic-addon">Who are you? </span>
+        </div>
+        <input type="text" class="form-control" id="usernameInput" name="username" placeholder="Username" aria-label="Username" aria-describedby="basic-addon">
+    </div>
+    <div class="alert alert-info" role="alert">
+        A simple way of authentication in order to help the system recognize faces you've already submitted and supplied with a name
+    </div>
+    <!--END of Authentication Box -->
+
+    <!-- Upload button box -->
+    <div class="row text-center">
+        <div class="col-6">
+            <button id="manageBoxBtn" class="btn btn-warning btn-lg mt-2" type="button"
+                    onclick="loadManage(document.getElementById('usernameInput').value)">
+                Manage images
+            </button>
+        </div>
+        <div class="col-6">
+            <button id="uploadBoxBtn" class="btn btn-danger btn-lg mt-2" type="button"
+                    onclick="loadUploadBox(document.getElementById('usernameInput').value)">
+                Upload images
+            </button>
+        </div>
+    </div>
+    <!-- End of Upload button box -->
+</div>

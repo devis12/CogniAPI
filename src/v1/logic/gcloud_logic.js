@@ -15,6 +15,13 @@ const annotateFeatures = [
     {type:'IMAGE_PROPERTIES'}, {type:'CROP_HINTS'}, {type:'WEB_DETECTION'}, {type:'OBJECT_LOCALIZATION'}
 ];
 
+
+//TODO show marcos
+const requestNative = require('request-promise-native').defaults({
+    encoding: 'base64'
+});
+let base64 = true;
+
 //functions to perform single image annotation
 function analyseRemoteImage(imageUrl, customFeatures){
     return new Promise((resolve, reject) => {
@@ -27,15 +34,31 @@ function analyseRemoteImage(imageUrl, customFeatures){
         if(customFeatures)//custom features
             request['features'] = customFeatures;
 
-        client
-            .annotateImage(request)
-            .then(response => {
-                resolve(response);
-            })
-            .catch(err => {
-                console.error(err);
-                reject(err);
+        if(base64){//TODO show marcos
+            requestNative(imageUrl).then(obj64 => {
+                request['image'] = {content: obj64};
+                client
+                    .annotateImage(request)
+                    .then(response => {
+                        resolve(response);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        reject(err);
+                    });
             });
+        }else{
+            client
+                .annotateImage(request)
+                .then(response => {
+                    resolve(response);
+                })
+                .catch(err => {
+                    console.error(err);
+                    reject(err);
+                });
+        }
+
 
     });
 }
@@ -71,9 +94,6 @@ function analyseBatchRemoteImages(imageUrls){
 /*  Utility function in order to delete unnecessary data from the tag detection and then
 *   return just labels and relative scores (take only the ones which are above the minScore threshold)*/
 function filterTags(gcloudJson, minScore){
-    if(minScore == null)//threshold tolerance for tags
-        minScore = 0.0;
-    minScore = Number.parseFloat(minScore);
 
     let retObj = {};
 

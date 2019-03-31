@@ -64,7 +64,7 @@
 
     <%# The following script will put a box for every azure face detected, if the user wants to relate some
         user data (possibly a name+surname) she/he'll perform it bu clicking Recognize  %>
-    <%  if(user != null){
+    <%  if(user != null && imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){
             for(azureFace of imgAnnotated.azureF){
     %>
         <div class="row alert-light mb-1 mr-5 ml-5">
@@ -123,7 +123,7 @@
             //.set_icons('+', '-')
                 .set_max_string_length(100)
                 (
-
+                        <%- JSON.stringify(imgAnnotated.cogniAPI)%>
                 ));
     </script>
 <%  }%>
@@ -131,7 +131,7 @@
 <%# The following script will put a button in order to give a visual interface which allows to train the system  %>
 
 <%  if(user != null){ %>
-    <div class="alert alert-info ml-5 mr-5 text-center" role="alert">
+    <div class="alert alert-info ml-5 mr-5 text-center mb-5" role="alert">
         <h4 class="alert-heading">Train the system!</h4>
         <p>
             If you successfully help me to recognize some people, I suggest you to push the button below in order to make me train, so

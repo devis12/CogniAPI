@@ -15,8 +15,8 @@ router.get('/tags', (req, res) => {
     let imgUrl = req.query.url;
     if(imgUrl){
 
-        let minScore = req.query.minscore; //threshold
-        if(minScore == null)
+        let minScore = Number.parseFloat(req.query.minscore); //threshold
+        if(Number.isNaN(minScore) || minScore < 0 || minScore > 1) //with invalid input or without the param just keep 0 as default
             minScore = 0.0;
 
         cogniCombine.multipleTagsAnalysisRemoteImage(imgUrl, minScore)

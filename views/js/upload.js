@@ -2,8 +2,6 @@
     (LATER) COMBINE THE RESULTS
 * */
 
-//variable in order to decide to which url perform the request during development (herokuapp url or localhost)
-let herokuTest = false;
 if(window.location.hostname == 'cogni-api.herokuapp.com')
     herokuTest = true;
 
@@ -19,7 +17,7 @@ function upload(pwd, username){
     uploadAuth(pwd)
         .then(token => {
             //perform file(s) uploading
-            uploadFiles(token)
+            uploadFiles(token, username)
 
                 .then( urlImages => {
 
@@ -82,6 +80,7 @@ function uploadAuth(pwd){
             data: form_pwd,
             type: 'post',
             success: function (php_script_response) {
+                console.log('token: ' + php_script_response);
                 resolve(php_script_response);//otp token to use for actual files upload is in the response
             },
             error: function (php_script_response) {
@@ -93,7 +92,7 @@ function uploadAuth(pwd){
 }
 
 /*  Perform files upload after token has been generated */
-function uploadFiles(token){
+function uploadFiles(token, username){
     return new Promise((resolve, reject) => {
         let file_data = [];
 
@@ -104,6 +103,11 @@ function uploadFiles(token){
         for(let i=0; i<$('#groupImages').prop('files').length; i++){
             //append one file per time with name 'file' + i ('file0', 'file1', 'file2',..)
             form_data.append('file'+i, $('#groupImages').prop('files')[i]);
+        }
+
+        //set username in case of authenticated user (silly not protected form of auth, given the context)
+        if(username != null && username != ''){
+            form_data.append("username", username);
         }
 
         //otp token to use for files upload

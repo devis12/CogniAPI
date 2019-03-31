@@ -1,0 +1,50 @@
+<div class="alert alert-info" role="alert">
+    You're now logged as <%= user%>
+</div>
+
+<%  if(imgAnnotations['errorCogni'] != undefined){ %>
+    <div class="alert alert-danger" role="alert">
+        Sorry, it seems like there has been some troubles...
+        <br />
+        Contact devis.dalmoro@studenti.unitn.it
+    </div>
+<%  } %>
+
+<%  if(Array.isArray(imgAnnotations)){ %>
+    
+    <style>
+        .hand-p{
+            cursor: pointer;
+        }
+    </style>
+    
+    <div class="container-fluid">
+        <%  for(let i=0; i<imgAnnotations.length; i++){ %>
+                <% if(i%2 == 0){ %>
+                    <div class="row">
+                <% } %>
+
+                <div class="col-4 jumbotron m-1 text-center mr-auto ml-auto">
+                    <img class="hand-p d-block w-75 ml-auto mr-auto mt-auto mb-auto" src="<%=imgAnnotations[i]['img_url']%>" alt="<%=imgAnnotations[i]['img_url']%>">
+                    <div class="btn-group mt-1" role="group" aria-label="Basic example">
+                        <button type="button" class="btn btn-warning m-1"
+                                onclick="annotateSingleImg( '<%= user%>',
+                                                            '<%=imgAnnotations[i]['img_url']%>',
+                                                            '<%=imgAnnotations[i]['json_b64']%>')">
+                            ANNOTATE
+                        </button>
+
+                        <button type="button" class="btn btn-danger m-1" onclick="deleteImg('<%=user%>', '<%=imgAnnotations[i]['img_url']%>')">
+                            DELETE
+                        </button>
+                    </div>
+                </div>
+
+                <% if((i+1)%2 == 0){ %>
+                    </div>
+                    <hr />
+                <% } %>
+        <%  } %>
+    </div>
+
+<%  } %>

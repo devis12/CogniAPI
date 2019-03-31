@@ -6,10 +6,16 @@
 <body>
 
     <nav class="navbar navbar-light bg-light">
-        <a class="navbar-brand font-weight-bold" href="#">
+        <a id="homeLink" class="navbar-brand font-weight-bold" href="#">
             <img src="img/logo.png" width="30" height="30" class="d-inline-block align-top" alt="">
             CogniAPI
         </a>
+        <script>
+            if(window.location.hostname == 'cogni-api.herokuapp.com')
+                document.getElementById('homeLink').href = 'https://cogni-api.herokuapp.com';
+            else
+                document.getElementById('homeLink').href = 'http://' + window.location.hostname + ':' + window.location.port;
+        </script>
     </nav>
 
     <div class="container-fluid">
@@ -29,21 +35,19 @@
         <%# If imgAnnotations equals to null, no images to load,
             so the user will have the box in order to upload a new batch...
             Otherwhise show the results %>
-        <% if(imgAnnotations == null){ %>
+        <% if(imgAnnotations == null && gui_type == 0){ %>
+            <%- include('auth_box'); %>
+        <% }else if(imgAnnotations == null && gui_type == 1){ %>
             <%- include('upload_box'); %>
-        <% }else{ %>
+        <% }else if(imgAnnotations != null && gui_type == 2){ %>
+            <%- include('manage_images'); %>
+        <% }else if(imgAnnotations != null){ %>
             <%- include('img_annotated', imgAnnotations); %>
         <% }%>
 
     </div>
 
     <%- include('generic_js'); %>
-
-    <!-- Upload images -->
-    <script src="js/upload.js"></script>
-
-    <!-- Add face info to face group -->
-    <script src="js/face.js"></script>
 
 </body>
 </html>
