@@ -2,11 +2,6 @@
     RECOGNIZE SOME USER DATA RELATED TO SIMILAR FACES
 * */
 
-//variable in order to decide to which url perform the request during development (herokuapp url or localhost)
-let herokuTestF = false;
-if(window.location.hostname == 'cogni-api.herokuapp.com')
-    herokuTestF = true;
-
 /*  Ask Azure Face to create a persisted id and related user data (possibly name+surname) linked to
 *   a particular face detected by the service in an image.
 *   The persistence face id will be generated & insert in a facelist linked to the loggeduser*/
@@ -21,7 +16,7 @@ function addToFaceGroup(imageUrl, target, userData, loggedUser){
 
     let urlFG = null;
 
-    if(herokuTestF)
+    if(herokuTest)
         urlFG = 'https://cogni-api.herokuapp.com' + '/azure/addFace/' + loggedUser;
     else
         urlFG = 'http://localhost:3000' + '/azure/addFace/' + loggedUser;//[TODO change this to actual API call when not testing]
@@ -55,12 +50,49 @@ function addToFaceGroup(imageUrl, target, userData, loggedUser){
     });
 }
 
+/*  Ask Azure Face to update the userData linked to a persisted face id inside a large face list
+*   related to the logged user.
+*/
+function patchFaceGroup(persistedFaceId, userData, loggedUser){
+    let urlFG = null;
+
+    if(herokuTest)
+        urlFG = 'https://cogni-api.herokuapp.com' + '/azure/patchFace/' + loggedUser;
+    else
+        urlFG = 'http://localhost:3000' + '/azure/patchFace/' + loggedUser;//[TODO change this to actual API call when not testing]
+
+    let bodyParams = {
+        //image url
+        'persistedFaceId': persistedFaceId,
+
+        //possibly name & surname related to the detected face or a unique id, which will consent to extract more data from that person (stored in a local/private db)
+        'userData': userData
+    };
+
+    $.ajax({
+        url: urlFG,
+        dataType: 'text',  // what to expect back from the PHP script, if anything
+        cache: false,
+        contentType: 'application/json',
+        processData: false,
+        data: JSON.stringify(bodyParams),
+        type: 'post',
+        success: function (express_script_response) {
+            console.log(express_script_response);
+            alert('Operation performed successfully');
+        },
+        error: function (express_script_response) {
+            console.log(express_script_response);
+        }
+    });
+}
+
 /*  Ask Azure Face to train the ml service by using the dataset (facelist with generated persistence ids) associated with the logged user*/
 function train(loggedUser){
 
     let urlFG = null;
 
-    if(herokuTestF)
+    if(herokuTest)
         urlFG = 'https://cogni-api.herokuapp.com' + '/azure/trainFace/' + loggedUser;
     else
         urlFG = 'http://localhost:3000' + '/azure/trainFace/' + loggedUser;//[TODO change this to actual API call when not testing]

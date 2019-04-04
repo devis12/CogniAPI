@@ -18,7 +18,7 @@
     .renderjson .array.syntax  { color: orange; }
 </style>
 
-<script src="js/renderjson.js"></script>
+<script src="/js/renderjson.js"></script>
 
 <%  for(imgAnnotated of imgAnnotations){%>
     <div class="mt-4 mb-4">
@@ -27,7 +27,7 @@
         <div class="row">
             <div class="col-3"></div>
             <div class="col-6">
-                <img class="d-block w-50 ml-auto mr-auto" src="<%= imgAnnotated.imgUrl%>">
+                <img class="d-block w-75 ml-auto mr-auto" src="<%= imgAnnotated.imgUrl%>">
             </div>
             <div class="col-3"></div>
         </div>
@@ -64,24 +64,45 @@
 
     <%# The following script will put a box for every azure face detected, if the user wants to relate some
         user data (possibly a name+surname) she/he'll perform it bu clicking Recognize  %>
-    <%  if(user != null && imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){
+    <%  if(user != null){
             for(azureFace of imgAnnotated.azureF){
     %>
         <div class="row alert-light mb-1 mr-5 ml-5">
-            In future image submissions recognize <%= azureFace.faceId%> as ... <br />
+            <p class="mt-4">
+                <% if(azureFace.persistedFaceId != undefined && azureFace.persistedName != undefined) { %>
+                    <span class="font-italic font-weight-bold">
+                        The following face has been recognized as <%=azureFace.persistedName%>
+                        <br />
+                    </span>
+                    In future image submissions recognize <%= azureFace.persistedFaceId%> as ... <br />
+                <% }else if(imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){ %>
+                    In future image submissions recognize <%= azureFace.faceId%> as ... <br />
+                <% } %>
+            </p>
             <div class="input-group">
-                <input type="text" class="form-control" placeholder="Name" id="name_<%= azureFace.faceId%>">
-                <input type="hidden" id="target_<%= azureFace.faceId%>"
-                       value="<%= azureFace.faceRectangle.left%>,<%= azureFace.faceRectangle.top%>,<%= azureFace.faceRectangle.width%>,<%= azureFace.faceRectangle.height%>">
-                <button onclick="addToFaceGroup('<%= imgAnnotated.imgUrl%>',
-                                                document.getElementById('target_<%= azureFace.faceId%>').value,
-                                                document.getElementById('name_<%= azureFace.faceId%>').value,
-                                                '<%= user%>')">
-                    Recognize
-                </button>
+                <% if(azureFace.persistedFaceId != undefined && azureFace.persistedName != undefined) { %>
+                    <input type="text" class="form-control" placeholder="Name" id="name_<%= azureFace.persistedFaceId%>">
+                    <button onclick="patchFaceGroup('<%= azureFace.persistedFaceId%>',
+                            document.getElementById('name_<%= azureFace.persistedFaceId%>').value,
+                            '<%= user%>')">
+                        Update
+                    </button>
+                <% }else if(imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){ %>
+                    <input type="text" class="form-control" placeholder="Name" id="name_<%= azureFace.faceId%>">
+                    <input type="hidden" id="target_<%= azureFace.faceId%>"
+                           value="<%= azureFace.faceRectangle.left%>,<%= azureFace.faceRectangle.top%>,<%= azureFace.faceRectangle.width%>,<%= azureFace.faceRectangle.height%>">
+                    <button onclick="addToFaceGroup('<%= imgAnnotated.imgUrl%>',
+                            document.getElementById('target_<%= azureFace.faceId%>').value,
+                            document.getElementById('name_<%= azureFace.faceId%>').value,
+                            '<%= user%>')">
+                        Recognize
+                    </button>
+                <% } %>
+
             </div>
         </div>
-    <%      }
+    <%
+            }
         }
     %>
 

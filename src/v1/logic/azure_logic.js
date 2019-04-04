@@ -135,7 +135,7 @@ function faceRemoteImage(imageUrl){
 //const string to add as suffix in order to identify a face group name related to a specific logged user
 const faceGroupSuffix = '_cogni_fg';
 
-/*  Given a groupName instantiate a LargeFaceList on azure with that name (if doesn't exist yet)
+/*  Given a loggedUser instantiate a LargeFaceList on azure with the name related to it (if doesn't exist yet)
 * */
 function createFaceGroup(loggedUser){
     let groupName = (loggedUser + faceGroupSuffix).toLowerCase();//fix bug azure largelistface id
@@ -170,7 +170,7 @@ function createFaceGroup(loggedUser){
     });
 }
 
-/*  Given a groupName instantiate a LargeFaceList on azure with that name (if doesn't exist yet)
+/*  Given a face target & some user_data, store them in the face list related to the user
 * */
 function addToFaceGroup(imageUrl, target, userData, loggedUser){
     let groupName = (loggedUser + faceGroupSuffix).toLowerCase();//fix bug azure largelistface id
@@ -206,6 +206,36 @@ function addToFaceGroup(imageUrl, target, userData, loggedUser){
                     reject({err_status: res.status});
                 else{
                     console.log('Added face correctly for user ' + loggedUser);
+                    resolve(200); // face added to face group
+                }
+
+            }).catch(e => reject(e));
+
+    });
+}
+
+/*  Given a persisted face & some user_data, store them in the face list related to the user (updating the ones
+*   which are already saved)
+* */
+function patchFace(persistedFaceId, userData, loggedUser){
+    let groupName = (loggedUser + faceGroupSuffix).toLowerCase();//fix bug azure largelistface id
+    return new Promise((resolve, reject) => {
+
+        let uriBQ = uriBaseFace + '/largefacelists/' + groupName + '/persistedfaces/' + persistedFaceId; //uriBQ will be uri base with the parameters
+
+        fetch(uriBQ, {
+            method: 'PATCH',
+            body: '{"userData": ' + '"' + userData + '"}',
+            headers: {
+                'Content-Type': 'application/json',
+                'Ocp-Apim-Subscription-Key' : subscriptionKeyF
+            }
+        })
+            .then(res => {
+                if(!res.ok)//res.status<200 || res.status >=300
+                    reject({err_status: res.status});
+                else{
+                    console.log('Patched face correctly for user ' + loggedUser);
                     resolve(200); // face added to face group
                 }
 
@@ -267,6 +297,7 @@ function findSimilar(loggedUser, imgAnnotation){
                 console.log('The following array of persisted userData has been discovered for ' + imgAnnotation.imgUrl + ': ' + JSON.stringify(persistedUserData));
                 for(let i = 0; i < imgAnnotation.azureF.length; i++){
                     imgAnnotation.azureF[i]['persistedName'] = persistedUserData[i];
+                    imgAnnotation.azureF[i]['persistedFaceId'] = persistedIds[i];
                 }
                 resolve(imgAnnotation);
             });
@@ -400,5 +431,5 @@ function findUserDataPersistedIds(faceList, persistedFaceIds) {
 }
 
 module.exports = {  analyseRemoteImage, faceRemoteImage, createFaceGroup,
-                    addToFaceGroup, trainFaceGroup, findSimilar,
+                    addToFaceGroup, patchFace, trainFaceGroup, findSimilar,
                     filterTags};

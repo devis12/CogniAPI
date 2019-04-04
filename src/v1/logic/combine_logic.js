@@ -43,7 +43,7 @@ function multipleAnalysisRemoteImage(imageUrl, loggedUser){
                 azureF: values[2]
             };
             jsonCombineRes['cogniAPI'] = {};//add field for cogniAPI data
-            console.log("AZURE SAFETY");
+            /*console.log("AZURE SAFETY");
             console.log(values[1]['adult']);
             console.log("GOOGLE SAFETY");
             console.log(values[0][0]['safeSearchAnnotation']);
@@ -57,7 +57,7 @@ function multipleAnalysisRemoteImage(imageUrl, loggedUser){
             jsonCombineRes['cogniAPI']['colorInfo'] = colorInfoUtilities.buildColorInfoTag(
                                                         values[1]['color'],
                                                         values[0][0]['imagePropertiesAnnotation']['dominantColors']);
-
+            */
             if(loggedUser){
                 //add tag in case you find a similar faces, already registered by the logged user
                 azureCompVision.findSimilar(

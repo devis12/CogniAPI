@@ -10,6 +10,19 @@ const router = express.Router();
 //combine logic implemented in a module apart
 const cogniCombine = require('../logic/combine_logic');
 
+//combine annotations
+router.get('/analyze', (req, res) => {
+    let imgUrl = req.query.url;
+    let loggedUser = req.query.user;
+    if(imgUrl){
+        cogniCombine.multipleAnalysisRemoteImage(imgUrl, loggedUser)
+            .then( jsonAnn => res.status(200).json(jsonAnn))
+            .catch(e => res.status(400).json({}));
+    }else{
+        res.status(400).json({});
+    }
+});
+
 //combine tags
 router.get('/tags', (req, res) => {
     let imgUrl = req.query.url;

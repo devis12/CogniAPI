@@ -94,6 +94,32 @@ router.post('/azure/addFace/:loggedUser', (req, res) => {
 
 });
 
+// azure update face data to face group
+router.post('/azure/patchFace/:loggedUser', (req, res) => {
+
+    let persistedFaceId = req.body.persistedFaceId;
+    let userData = req.body.userData;
+    let loggedUser = req.params.loggedUser;
+
+    console.log("PATCH FACE");
+    console.log(loggedUser);
+    console.log(persistedFaceId);
+    console.log(userData);
+
+    if(persistedFaceId &&  userData && loggedUser){
+        azureLogic.patchFace(persistedFaceId, userData, loggedUser)
+            .then( data => {
+                res.status(200).send('Patched face correctly for user ' + loggedUser);
+            })
+            .catch(e => {
+                res.status(400).send(e);
+            });
+    }else{
+        res.status(400).send('Invalid Data');
+    }
+
+});
+
 // azure train face group
 router.post('/azure/trainFace/:loggedUser', (req, res) => {
 

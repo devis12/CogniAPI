@@ -14,10 +14,10 @@
 * */
 function azureFaceVertex(azureFaceRect){
     let bl =    {   'x':    azureFaceRect['left'],
-                    'y':    azureFaceRect['top'] - azureFaceRect['height']
+                    'y':    ((azureFaceRect['top'] - azureFaceRect['height']) > 0)? (azureFaceRect['top'] - azureFaceRect['height']) : 0
                 };
     let br =    {   'x':    azureFaceRect['left'] + azureFaceRect['width'],
-                    'y':    azureFaceRect['top'] - azureFaceRect['height']
+                    'y':    ((azureFaceRect['top'] - azureFaceRect['height']) > 0)? (azureFaceRect['top'] - azureFaceRect['height']) : 0
                 };
     let tl =    {   'x':    azureFaceRect['left'],
                     'y':    azureFaceRect['top']

@@ -141,9 +141,9 @@ function postAnalysis(urlImages, username){
     let form = document.createElement('form');
     form.setAttribute('method', 'POST');
     if(herokuTest)
-        form.setAttribute('action', 'https://cogni-api.herokuapp.com');
+        form.setAttribute('action', 'https://cogni-api.herokuapp.com/upload/images');
     else
-        form.setAttribute('action', 'http://localhost:3000');//[TODO change this to actual API call when not testing]
+        form.setAttribute('action', 'http://localhost:3000/upload/images');//[TODO change this to actual API call when not testing]
 
     //set username in case of authenticated user (silly not protected form of auth, given the context)
     if(username != null && username != ''){

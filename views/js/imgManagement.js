@@ -4,14 +4,15 @@ if(window.location.hostname == 'cogni-api.herokuapp.com')
 /*  Function will allow user to see the tags annotation for an image
     already loaded on the storage
 * */
-function annotateSingleImg(username, imgUrl, imgAnnb64){
+function annotateSingleImg(username, imgUrl, imgAnnb64, cache=true){
+
     //SET POST REQUEST IN ORDER TO SHOW THE imgAnn
     let form = document.createElement('form');
     form.setAttribute('method', 'POST');
     if(herokuTest)
-        form.setAttribute('action', 'https://cogni-api.herokuapp.com/singleImg');
+        form.setAttribute('action', 'https://cogni-api.herokuapp.com/manage/singleImg');
     else
-        form.setAttribute('action', 'http://localhost:3000/singleImg');//[TODO change this to actual API call when not testing]
+        form.setAttribute('action', 'http://localhost:3000/manage/singleImg');//[TODO change this to actual API call when not testing]
 
     //set username in case of authenticated user (silly not protected form of auth, given the context)
     if(username != null && username != ''){
@@ -43,6 +44,13 @@ function annotateSingleImg(username, imgUrl, imgAnnb64){
     hiddenField.setAttribute("type", "hidden");
     hiddenField.setAttribute("name", 'imgAnnb64');
     hiddenField.setAttribute("value", imgAnnb64);
+    form.appendChild(hiddenField);
+
+    //adding cache setting
+    hiddenField = document.createElement("input");
+    hiddenField.setAttribute("type", "hidden");
+    hiddenField.setAttribute("name", 'cache');
+    hiddenField.setAttribute("value", ''+cache);
     form.appendChild(hiddenField);
 
     document.body.appendChild(form);
