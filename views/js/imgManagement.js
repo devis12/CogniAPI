@@ -84,3 +84,17 @@ function deleteImg(user, imgUrl){
         }
     });
 }
+
+/*  Function which will have just aesthetic features in order to make
+    Annotation buttons distinguishable (black the ones which will perform
+    a new analysis, green the other which will fetch the data from cache)
+* */
+function toggleCacheAnnBtn(checked){
+    if(!checked){
+        $('.btn-cached').removeClass('btn-dark');
+        $('.btn-cached').addClass('btn-success');
+    }else{
+        $('.btn-cached').removeClass('btn-success');
+        $('.btn-cached').addClass('btn-dark');
+    }
+}

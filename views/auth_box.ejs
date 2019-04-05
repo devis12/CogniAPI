@@ -7,7 +7,7 @@
         <div class="input-group-prepend">
             <span class="input-group-text" id="basic-addon">Who are you? </span>
         </div>
-        <input type="text" class="form-control" id="usernameInput" name="username" placeholder="Username" aria-label="Username" aria-describedby="basic-addon">
+        <input type="text" class="form-control" id="usernameInput" name="username" value="<%=user%>" placeholder="Username" aria-label="Username" aria-describedby="basic-addon">
     </div>
     <div class="alert alert-info" role="alert">
         A simple way of authentication in order to help the system recognize faces you've already submitted and supplied with a name
@@ -17,7 +17,7 @@
     <!-- Upload button box -->
     <div class="row text-center">
         <div class="col-6">
-            <button id="manageBoxBtn" class="btn btn-warning btn-lg mt-2" type="button"
+            <button id="manageBoxBtn" class="btn btn-warning text-white btn-lg mt-2" type="button"
                     onclick="loadManage(document.getElementById('usernameInput').value)">
                 Manage images
             </button>

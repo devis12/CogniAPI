@@ -6,7 +6,7 @@ if(window.location.hostname == 'cogni-api.herokuapp.com')
     herokuTest = true;
 
 /*  Upload wrapper function */
-function upload(pwd, username){
+function upload(pwd, username, asyncUp){
     //check validity of parameter
     if(!checkUploadParams(pwd))
         return;
@@ -23,7 +23,7 @@ function upload(pwd, username){
 
                     //generated url for the uploaded images
                     urlImages = JSON.parse(urlImages);
-                    postAnalysis(urlImages, username);//submit them through a post request directed to the express server
+                    postAnalysis(urlImages, username, asyncUp);//submit them through a post request directed to the express server
                 })
 
                 .catch( error => {
@@ -136,14 +136,22 @@ function uploadFiles(token, username){
 
 /*  JS Client side function which will perform a post request with the generated urls (for the uploaded imgs),
 *   so the express server can contact the cognitive service apis and combine the result via the implemented processing*/
-function postAnalysis(urlImages, username){
+function postAnalysis(urlImages, username, asyncUp){
     //SET POST REQUEST WITH GENERATED URL BY A FORM
     let form = document.createElement('form');
+    let urlReq = '';
     form.setAttribute('method', 'POST');
     if(herokuTest)
-        form.setAttribute('action', 'https://cogni-api.herokuapp.com/upload/images');
+        urlReq = 'https://cogni-api.herokuapp.com/';
     else
-        form.setAttribute('action', 'http://localhost:3000/upload/images');//[TODO change this to actual API call when not testing]
+        urlReq = 'http://localhost:3000/';
+
+    if(asyncUp)//in order to perform async analysis to check in later
+        urlReq += 'uploadAsync/images';
+    else
+        urlReq += 'upload/images';
+
+    form.setAttribute('action', urlReq);
 
     //set username in case of authenticated user (silly not protected form of auth, given the context)
     if(username != null && username != ''){

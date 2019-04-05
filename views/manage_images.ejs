@@ -4,10 +4,12 @@
 <div class="alert alert-warning text-center" role="alert">
     Use the switch below in order to deactivate/activate the caching system
     <div class="checkbox mt-2">
-        <label>
+        <label onclick="toggleCacheAnnBtn(document.getElementById('cacheSwitch').checked)">
             <input type="checkbox" id="cacheSwitch" data-toggle="toggle" checked value="cacheSwitch">
         </label>
     </div>
+    <br />
+    When there is nothing cached (<span class="text-dark font-weight-bold">black ANNOTATE button</span>), as you will see, you'll need to perform an analysis all over again
 </div>
 
 <%  if(imgAnnotations['errorCogni'] != undefined){ %>
@@ -35,15 +37,28 @@
                 <div class="col-4 jumbotron m-1 text-center mr-auto ml-auto">
                     <img class="hand-p d-block w-75 ml-auto mr-auto mt-auto mb-auto" src="<%=imgAnnotations[i]['img_url']%>" alt="<%=imgAnnotations[i]['img_url']%>">
                     <div class="row w-75 ml-auto mr-auto text-center mt-5">
-                        <div class="col">
-                            <button type="button" class="btn btn-warning text-white m-1 btn-sm"
-                                    onclick="annotateSingleImg( '<%= user%>',
-                                            '<%=imgAnnotations[i]['img_url']%>',
-                                            '<%=imgAnnotations[i]['json_b64']%>',
-                                            document.getElementById('cacheSwitch').checked)">
-                                ANNOTATE
-                            </button>
-                        </div>
+
+                            <% if(imgAnnotations[i]['json_b64'] != null){ %>
+                                <div class="col">
+                                    <button type="button" class="btn btn-success text-white m-1 btn-sm btn-cached"
+                                        onclick="annotateSingleImg( '<%= user%>',
+                                                '<%=imgAnnotations[i]['img_url']%>',
+                                                '<%=imgAnnotations[i]['json_b64']%>',
+                                                document.getElementById('cacheSwitch').checked)">
+                                        ANNOTATE
+                                    </button>
+                                </div>
+                            <% } else { %>
+                                <div class="col">
+                                    <button type="button" class="btn btn-dark text-white m-1 btn-sm"
+                                        onclick="annotateSingleImg( '<%= user%>',
+                                                '<%=imgAnnotations[i]['img_url']%>',
+                                                '<%=imgAnnotations[i]['json_b64']%>',
+                                                false)">
+                                        ANNOTATE
+                                    </button>
+                                </div>
+                            <% } %>
                         <div class="col">
                             <button type="button" class="btn btn-danger m-1 btn-sm" onclick="deleteImg('<%=user%>', '<%=imgAnnotations[i]['img_url']%>')">
                                 DELETE

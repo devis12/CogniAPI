@@ -20,7 +20,7 @@ const annotateFeatures = [
 const requestNative = require('request-promise-native').defaults({
     encoding: 'base64'
 });
-let base64 = true;
+let base64 = true;//slow if you use it, but you're more sure that you don't fall in gcloud api bugs
 
 //functions to perform single image annotation
 function analyseRemoteImage(imageUrl, customFeatures){

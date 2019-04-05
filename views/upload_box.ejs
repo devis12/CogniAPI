@@ -21,7 +21,13 @@
     <!-- Upload button box -->
     <div class="row text-center">
         <div class="col-2"></div>
-        <div class="col-8">
+        <div class="col-4">
+            <button id="uploadBtn" class="btn btn-warning text-white btn-lg mt-2" type="button"
+                    onclick="upload(document.getElementById('pwd').value, '<%= user%>', true)">
+                Async Upload
+            </button>
+        </div>
+        <div class="col-4">
             <button id="uploadBtn" class="btn btn-danger btn-lg mt-2" type="button"
                     onclick="upload(document.getElementById('pwd').value, '<%= user%>')">
                 Upload

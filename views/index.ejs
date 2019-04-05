@@ -36,6 +36,17 @@
         </div>
         <!-- END OF HEAD TITLE -->
 
+        <%# If imgAnnotations equals to asyncUp202, images async analysis has been started correctly %>
+        <% if(imgAnnotations == 'asyncUp202'){%>
+            <div class="alert alert-success" role="alert">
+                Great! The batch analysis has been started correctly... It takes time, go grab a coffee and when you
+                come back you'll see the cached result through the manage images feature below
+            </div>
+        <%      imgAnnotations = null;
+            }
+
+        %>
+
         <%# If imgAnnotations equals to null, no images to load,
             so the user will have the box in order to upload a new batch...
             Otherwhise show the results %>
