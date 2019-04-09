@@ -16,20 +16,128 @@
     .renderjson .keyword { color: blue; }
     .renderjson .object.syntax { color: lightseagreen; }
     .renderjson .array.syntax  { color: orange; }
+
+    .faceBoundingBox {
+        position:absolute;
+        background-color:transparent
+    }
+
+
 </style>
 
 <script src="/js/renderjson.js"></script>
+<script>
+    let vettImgNames = [];
+
+    function fixHeights(imgName){
+        if(vettImgNames.findIndex(function(el){return el == imgName}) == -1)
+            vettImgNames.push(imgName);
+
+        //show the img_face_box (face id & user_data stored for that image) with this box having the same height of the image
+        document.getElementById('img_ann_box_'+imgName).style.display = 'inline';
+        document.getElementById('img_ann_box_'+imgName).style.height = document.getElementById('img_'+imgName).height + 'px';
+    }
+
+    window.onresize = function (){
+        for (let imgName of vettImgNames) {
+            fixHeights(imgName);
+        }
+    };
+</script>
 
 <%  for(imgAnnotated of imgAnnotations){%>
     <div class="mt-4 mb-4">
 
         <!--IMG BOX-->
         <div class="row">
-            <div class="col-3"></div>
-            <div class="col-6">
-                <img class="d-block w-75 ml-auto mr-auto" src="<%= imgAnnotated.imgUrl%>">
+
+            <div id="img_box_<%= imgAnnotated.imgName%>" class="col-6">
+                <img onload="fixHeights('<%= imgAnnotated.imgName%>')" id="img_<%= imgAnnotated.imgName%>" class="w-100 h-auto ml-auto mr-auto" src="<%= imgAnnotated.imgUrl%>">
+                <div class="faceBoundingBox" id="face_box_<%= imgAnnotated.imgName%>"></div>
             </div>
-            <div class="col-3"></div>
+
+
+            <div id="img_ann_box_<%= imgAnnotated.imgName%>" class="col-6 alert-info" style="display:none;overflow: scroll">
+                <%# The following script will put a box for every azure face detected, if the user wants to relate some
+                user data (possibly a name+surname) she/he'll perform it bu clicking Recognize  %>
+                <%  if(user != null){
+                        for(azureFace of imgAnnotated.azureF){
+                %>
+                    <div class="row alert-warning p-3 mt-2 mb-3 mr-5 ml-5"
+                         onmouseover="boundFace(
+                                 'face_box_<%= imgAnnotated.imgName%>', 1, '<%= imgAnnotated.azureV.metadata.width%>', '<%= imgAnnotated.azureV.metadata.height%>',
+                                 '<%=azureFace.faceRectangle.top%>', '<%=azureFace.faceRectangle.left%>',
+                                 '<%=azureFace.faceRectangle.width%>', '<%=azureFace.faceRectangle.height%>',
+                                 )"
+                         onmouseleave="eraseFaceBound('face_box_<%= imgAnnotated.imgName%>')"
+                    >
+                        <p class="mt-4">
+                            <h5>FACE_ID "<%=azureFace.faceId%>"</h5>
+
+                            <% if(azureFace.persistedFaceId != undefined && azureFace.persistedName != undefined) { %>
+
+                            <span class="font-italic">
+                                It has been recognized as <span class="font-weight-bold"> <%=azureFace.persistedName%> </span> (persisted_id: "<%=azureFace.persistedFaceId%>")
+                            </span>
+                        <br />
+                    </span>
+                            In future image submissions recognize <%= azureFace.persistedFaceId%> as ... <br />
+
+                            <% }else if(imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){ %>
+
+                                In future image submissions recognize <%= azureFace.faceId%> as ... <br />
+
+                            <% } %>
+                        </p>
+
+                        <% if(azureFace.persistedFaceId != undefined && azureFace.persistedName != undefined) { %>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Name" id="name_<%= azureFace.persistedFaceId%>">
+                                <button onclick="patchFaceGroup('<%= azureFace.persistedFaceId%>',
+                                        document.getElementById('name_<%= azureFace.persistedFaceId%>').value,
+                                        '<%= user%>')">
+                                    Update
+                                </button>
+                            </div>
+
+                            <% if(imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){%>
+                                <p class="text-danger mt-2">
+                                    Did I recognize it wrong?
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Name" id="name_<%= azureFace.faceId%>">
+                                    <input type="hidden" id="target_<%= azureFace.faceId%>"
+                                           value="<%= azureFace.faceRectangle.left%>,<%= azureFace.faceRectangle.top%>,<%= azureFace.faceRectangle.width%>,<%= azureFace.faceRectangle.height%>">
+                                    <button onclick="addToFaceGroup('<%= imgAnnotated.imgUrl%>',
+                                            document.getElementById('target_<%= azureFace.faceId%>').value,
+                                            document.getElementById('name_<%= azureFace.faceId%>').value,
+                                            '<%= user%>')">
+                                        Recognize
+                                    </button>
+                                </div>
+                                </p>
+
+                            <% }%>
+                        <% }else if(imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){ %>
+                            <div class="input-group">
+                                <input type="text" class="form-control" placeholder="Name" id="name_<%= azureFace.faceId%>">
+                                <input type="hidden" id="target_<%= azureFace.faceId%>"
+                                       value="<%= azureFace.faceRectangle.left%>,<%= azureFace.faceRectangle.top%>,<%= azureFace.faceRectangle.width%>,<%= azureFace.faceRectangle.height%>">
+                                <button onclick="addToFaceGroup('<%= imgAnnotated.imgUrl%>',
+                                        document.getElementById('target_<%= azureFace.faceId%>').value,
+                                        document.getElementById('name_<%= azureFace.faceId%>').value,
+                                        '<%= user%>')">
+                                    Recognize
+                                </button>
+                            </div>
+
+                        <% } %>
+
+                    </div>
+                <%
+                    }
+                }
+                %>
+            </div>
         </div>
 
         <!--Azure Computer Vision & Google Cloud Vision Results BOX-->
@@ -62,54 +170,9 @@
 
     </div>
 
-    <%# The following script will put a box for every azure face detected, if the user wants to relate some
-        user data (possibly a name+surname) she/he'll perform it bu clicking Recognize  %>
-    <%  if(user != null){
-            for(azureFace of imgAnnotated.azureF){
-    %>
-        <div class="row alert-light mb-1 mr-5 ml-5">
-            <p class="mt-4">
-                <% if(azureFace.persistedFaceId != undefined && azureFace.persistedName != undefined) { %>
-                    <span class="font-italic font-weight-bold">
-                        The following face has been recognized as <%=azureFace.persistedName%>
-                        <br />
-                    </span>
-                    In future image submissions recognize <%= azureFace.persistedFaceId%> as ... <br />
-                <% }else if(imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){ %>
-                    In future image submissions recognize <%= azureFace.faceId%> as ... <br />
-                <% } %>
-            </p>
-            <div class="input-group">
-                <% if(azureFace.persistedFaceId != undefined && azureFace.persistedName != undefined) { %>
-                    <input type="text" class="form-control" placeholder="Name" id="name_<%= azureFace.persistedFaceId%>">
-                    <button onclick="patchFaceGroup('<%= azureFace.persistedFaceId%>',
-                            document.getElementById('name_<%= azureFace.persistedFaceId%>').value,
-                            '<%= user%>')">
-                        Update
-                    </button>
-                <% }else if(imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){ %>
-                    <input type="text" class="form-control" placeholder="Name" id="name_<%= azureFace.faceId%>">
-                    <input type="hidden" id="target_<%= azureFace.faceId%>"
-                           value="<%= azureFace.faceRectangle.left%>,<%= azureFace.faceRectangle.top%>,<%= azureFace.faceRectangle.width%>,<%= azureFace.faceRectangle.height%>">
-                    <button onclick="addToFaceGroup('<%= imgAnnotated.imgUrl%>',
-                            document.getElementById('target_<%= azureFace.faceId%>').value,
-                            document.getElementById('name_<%= azureFace.faceId%>').value,
-                            '<%= user%>')">
-                        Recognize
-                    </button>
-                <% } %>
-
-            </div>
-        </div>
-    <%
-            }
-        }
-    %>
-
     <div class="hr mb-5"></div>
 
     <script>
-
         document.getElementById("AVdest<%= imgAnnotated.imgUrl%>").appendChild(
             renderjson//.set_show_by_default(true)
             //.set_show_to_level(2)

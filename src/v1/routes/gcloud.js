@@ -14,13 +14,9 @@ const googleLogic = require('../logic/gcloud_logic');
 // azure analyze remote image just for testing purpose
 router.get('/gcloud/analyze', (req, res) => {
 
-    //googleLogicTEST.analyseBatchRemoteImages([req.query.url, req.query.url, req.query.url]) //trying batch method
     googleLogic.analyseRemoteImage(req.query.url)
         .then( data => {
-            res.status(200).json({
-                datetime: new Date(),
-                msg: data[0]
-            });
+            res.status(200).json(data[0]);
         })
         .catch(e => {
             let err_status;
@@ -32,11 +28,7 @@ router.get('/gcloud/analyze', (req, res) => {
                 err_msg = '' + e;
             }
 
-            res.status(err_status).json({
-                datetime: new Date(),
-                status: err_status,
-                msg: err_msg
-            });
+            res.status(err_status).json({err_msg: err_msg});
         });
 });
 
@@ -47,10 +39,12 @@ router.get('/gcloud/tags', (req, res) => {
         {type:'LANDMARK_DETECTION'}, {type:'LOGO_DETECTION'}, {type:'LABEL_DETECTION'}])
 
         .then( data => {
-            res.status(200).json({
-                datetime: new Date(),
-                msg: googleLogic.filterTags(data, req.query.minscore)
-            });
+
+            let minScore = Number.parseFloat(req.query.minscore); //threshold
+            if(Number.isNaN(minScore) || minScore < 0 || minScore > 1) //with invalid input or without the param just keep 0 as default
+                minScore = 0.0;
+
+            res.status(200).json(googleLogic.filterTags(data, minScore));
         })
         .catch(e => {
             let err_status;
@@ -62,11 +56,7 @@ router.get('/gcloud/tags', (req, res) => {
                 err_msg = '' + e;
             }
 
-            res.status(err_status).json({
-                datetime: new Date(),
-                status: err_status,
-                msg: err_msg
-            });
+            res.status(err_status).json({err_msg: err_msg});
         });
 });
 

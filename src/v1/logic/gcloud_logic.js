@@ -16,7 +16,6 @@ const annotateFeatures = [
 ];
 
 
-//TODO show marcos
 const requestNative = require('request-promise-native').defaults({
     encoding: 'base64'
 });
@@ -34,7 +33,7 @@ function analyseRemoteImage(imageUrl, customFeatures){
         if(customFeatures)//custom features
             request['features'] = customFeatures;
 
-        if(base64){//TODO show marcos
+        if(base64){// in order to avoid gcloud bug is better if you upload the photo in base64
             requestNative(imageUrl).then(obj64 => {
                 request['image'] = {content: obj64};
                 client

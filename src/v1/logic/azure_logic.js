@@ -14,7 +14,7 @@ const fetch = require('node-fetch');
 const subscriptionKeyV = process.env.AZURE_VISION_KEY1;
 
 //url for accessing the azure computer vision api services
-const uriBaseVision = 'https://westeurope.api.cognitive.microsoft.com/vision/v2.0/analyze';
+const uriBaseVision = require('../general').uriAzureCompVision;
 
 function analyseRemoteImage(imageUrl, visualFeatures){
     return new Promise((resolve, reject) => {
@@ -30,7 +30,7 @@ function analyseRemoteImage(imageUrl, visualFeatures){
         if(visualFeatures)//custom features
             params['visualFeatures'] = visualFeatures;
 
-        let uriBQ = uriBaseVision + '?'; //uriBQ will be uri base with the query string params
+        let uriBQ = uriBaseVision + '/analyze?'; //uriBQ will be uri base with the query string params
         for(let p in params){
             uriBQ += p + "=" + params[p] + "&";
         }
@@ -93,7 +93,7 @@ function filterTags(azureJson, minScore){
 const subscriptionKeyF = process.env.AZURE_FACE_KEY1;
 
 //url for accessing the azure face api services
-const uriBaseFace = 'https://westeurope.api.cognitive.microsoft.com/face/v1.0';
+const uriBaseFace = require('../general').uriAzureFace;
 
 function faceRemoteImage(imageUrl){
     return new Promise((resolve, reject) => {

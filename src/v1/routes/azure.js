@@ -12,13 +12,9 @@ const azureLogic = require('../logic/azure_logic');
 
 // azure analyze remote image just for testing purpose
 router.get('/azure/analyze', (req, res) => {
-
     azureLogic.analyseRemoteImage(req.query.url)
         .then( data => {
-            res.status(200).json({
-                datetime: new Date(),
-                msg: data
-            });
+            res.status(200).json(data);
         })
         .catch(e => {
             let err_status;
@@ -30,24 +26,16 @@ router.get('/azure/analyze', (req, res) => {
                 err_msg = '' + e;
             }
 
-            res.status(err_status).json({
-                datetime: new Date(),
-                status: err_status,
-                msg: err_msg
-            });
+            res.status(err_status).json({err_msg: err_msg, err_status: err_status});
         });
 });
 
 // azure analyze remote image just for testing purpose
 router.get('/azure/face', (req, res) => {
 
-    //analyseRemoteImage = azureLogicTEST.analyseRemoteImage; // erase this ROW when you decomment above
     azureLogic.faceRemoteImage(req.query.url)
         .then( data => {
-            res.status(200).json({
-                datetime: new Date(),
-                msg: data
-            });
+            res.status(200).json(data);
         })
         .catch(e => {
             let err_status;
@@ -59,11 +47,7 @@ router.get('/azure/face', (req, res) => {
                 err_msg = '' + e;
             }
 
-            res.status(err_status).json({
-                datetime: new Date(),
-                status: err_status,
-                msg: err_msg
-            });
+            res.status(err_status).json({err_msg: err_msg});
         });
 });
 
@@ -74,11 +58,6 @@ router.post('/azure/addFace/:loggedUser', (req, res) => {
     let target = req.body.target;
     let userData = req.body.userData;
     let loggedUser = req.params.loggedUser;
-    /*console.log("SERVER SIDE - ADD FACE NAME");
-    console.log("imageUrl: " + imageUrl);
-    console.log("target: " + target);
-    console.log("userData: " + userData);
-    console.log("loggedUser: " + loggedUser);*/
 
     if(imageUrl && target && userData && loggedUser){
         azureLogic.addToFaceGroup(imageUrl, target, userData, loggedUser)
@@ -100,11 +79,6 @@ router.post('/azure/patchFace/:loggedUser', (req, res) => {
     let persistedFaceId = req.body.persistedFaceId;
     let userData = req.body.userData;
     let loggedUser = req.params.loggedUser;
-
-    console.log("PATCH FACE");
-    console.log(loggedUser);
-    console.log(persistedFaceId);
-    console.log(userData);
 
     if(persistedFaceId &&  userData && loggedUser){
         azureLogic.patchFace(persistedFaceId, userData, loggedUser)
@@ -144,10 +118,12 @@ router.post('/azure/trainFace/:loggedUser', (req, res) => {
 router.get('/azure/tags', (req, res) => {
     azureLogic.analyseRemoteImage(req.query.url, 'Tags,Categories,Description')
         .then( data => {
-            res.status(200).json({
-                datetime: new Date(),
-                msg: azureLogic.filterTags(data, req.query.minscore)
-            });
+
+            let minScore = Number.parseFloat(req.query.minscore); //threshold
+            if(Number.isNaN(minScore) || minScore < 0 || minScore > 1) //with invalid input or without the param just keep 0 as default
+                minScore = 0.0;
+
+            res.status(200).json(azureLogic.filterTags(data, minScore));
         })
         .catch(e => {
             let err_status;
@@ -159,11 +135,7 @@ router.get('/azure/tags', (req, res) => {
                 err_msg = '' + e;
             }
 
-            res.status(err_status).json({
-                datetime: new Date(),
-                status: err_status,
-                msg: err_msg
-            });
+            res.status(err_status).json({err_msg: err_msg});
         });
 });
 

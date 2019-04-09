@@ -14,7 +14,7 @@ require('dotenv').config();
 const fetch = require('node-fetch');
 
 //url for our backend storage
-const backendStorage = 'https://cogniapi.altervista.org/';
+const backendStorage = require('../general').backendStorage;
 
 //combine logic implemented in a module apart
 const cogniCombine = require('../logic/combine_logic');

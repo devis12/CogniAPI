@@ -8,7 +8,7 @@
 //perform the request with node-fetch
 const fetch = require('node-fetch');
 //url for our backend storage
-const backendStorage = 'https://cogniapi.altervista.org/';
+const backendStorage = require('../general').backendStorage;
 
 //GOOGLE CLOUD VISION FUNCTIONS (API CALLS)
 const gcloudVision = require('./gcloud_logic');
@@ -23,6 +23,9 @@ const safetyUtilities = require('./safetyUtilities');
 
 //colorinfo tags utilities
 const colorInfoUtilities = require('./colorInfoUtilities');
+
+//time interval between different images analysis
+const timeInterval = require('../general').asyncAnalysisInterval;
 
 /*  Multiple analysis of an image performed by three main services:
         -Google Cloud Vision
@@ -43,22 +46,14 @@ function multipleAnalysisRemoteImage(imageUrl, loggedUser){
             let jsonCombineRes = {
                 annotationDate: new Date(),
                 imgUrl: imageUrl,
+                imgName: imageUrl.substr(imageUrl.lastIndexOf('/')+1),
                 gCloud: values[0],
                 azureV: values[1],
                 azureF: values[2]
             };
             jsonCombineRes['cogniAPI'] = {};//add field for cogniAPI data
-            console.log("AZURE SAFETY");
-            console.log(values[1]['adult']);
-            console.log("GOOGLE SAFETY");
-            console.log(values[0][0]['safeSearchAnnotation']);
+
             jsonCombineRes['cogniAPI']['safety'] = safetyUtilities.buildSafetyTag(values[1]['adult'], values[0][0]['safeSearchAnnotation']);
-
-
-            console.log("AZURE COLORS");
-            console.log(values[1]['color']);
-            console.log("GOOGLE COLORINFO");
-            console.log(values[0][0]['imagePropertiesAnnotation']['dominantColors']);
             jsonCombineRes['cogniAPI']['colorInfo'] = colorInfoUtilities.buildColorInfoTag(
                                                         values[1]['color'],
                                                         values[0][0]['imagePropertiesAnnotation']['dominantColors']);
@@ -116,8 +111,9 @@ function imagesAnn(username, imgUrls, caching, imgAnnb64){
 }
 
 /*  This function will help us in order to annotate the images in an async way*/
-function asyncImagesAnn(username, imgUrls, interval=80000){
+function asyncImagesAnn(username, imgUrls){
     return new Promise(resolve => {
+
         let promiseFaceGroup;
         if(username != undefined && username != ''){
             //trying creating a group faces related to the logged user (if it doesn't exist)
@@ -139,7 +135,7 @@ function asyncImagesAnn(username, imgUrls, interval=80000){
                             //save on the cache system on first (or later if the caching system is disabled) the retrieved data
                             encodeB64Annotation(username, [data])
                         });
-                }, i*interval);//perform calls detached at least 60s from one another
+                }, i*timeInterval);//perform calls detached at least 60-80s from one another
             }
 
         });
@@ -157,12 +153,14 @@ function encodeB64Annotation(username, imgAnnotations){
             'data64': Buffer.from(JSON.stringify({
                 'annotationDate':imgAnn['annotationDate'],
                 'imgUrl':imgAnn['imgUrl'],
+                'imgName':imgAnn['imgName'],
                 'gCloud':imgAnn['gCloud'],
                 'azureV':imgAnn['azureV'],
                 'azureF':imgAnn['azureF'],
                 'cogniAPI':imgAnn['cogniAPI']
             })).toString('base64')
         };
+
         fetch(backendStorage + 'updateImgData.php', {
             method: 'POST',
             body: JSON.stringify(bodyReq),
@@ -193,7 +191,9 @@ function multipleTagsAnalysisRemoteImage(imageUrl, minScore){
             .then( values => {
 
                 let jsonCombineRes = {
+                    annotationDate: new Date(),
                     imgUrl: imageUrl,
+                    imgName: imageUrl.substr(imageUrl.lastIndexOf('/')+1),
                     gCloud: gcloudVision.filterTags(values[0], minScore),
                     azureV: azureCompVision.filterTags(values[1], minScore)
                 };
@@ -206,4 +206,4 @@ function multipleTagsAnalysisRemoteImage(imageUrl, minScore){
     });
 }
 
-module.exports = {multipleAnalysisRemoteImage, imagesAnn, asyncImagesAnn, encodeB64Annotation, multipleTagsAnalysisRemoteImage};
+module.exports = {multipleAnalysisRemoteImage, imagesAnn, asyncImagesAnn, multipleTagsAnalysisRemoteImage};

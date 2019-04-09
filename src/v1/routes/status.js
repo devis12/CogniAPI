@@ -16,14 +16,12 @@ router.get('/status', (req, res) => {
     statusLogic.hello()
         .then( data => {
             res.status(200).json({
-                datetime: new Date(),
                 msg: data
             });
         })
         .catch(e => {
            rres.status(500).json({
-               datetime: new Date(),
-               msg: '' + e
+               err_msg: '' + e
            });
         });
 });
