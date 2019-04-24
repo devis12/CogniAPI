@@ -119,7 +119,7 @@ function matchFaces(gcloudFaces, azureFaces){
         for(let aFace of azureFaces){
             if(!azFaceMatched[aFace['faceId']]){ //azure face ids is not already taken
                 let overLap = faceOverlap(gFace['cogniFaceRect'], aFace['cogniFaceRect']);
-                if(overLap > maxOverlap){
+                if(overLap > maxOverlap){//TODO consider a minimum threshold
                     maxOverlap = overLap;
                     matchId = aFace['faceId'];
                 }

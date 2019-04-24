@@ -62,34 +62,6 @@ function analyseRemoteImage(imageUrl, customFeatures){
     });
 }
 
-function analyseBatchRemoteImages(imageUrls){
-    return new Promise((resolve, reject) => {
-        let request = [];
-        for(let imgUrl of imageUrls){
-            request.push({
-                image: {source: {imageUri: imgUrl}},
-                features: annotateFeatures,
-            });
-        }
-
-        console.log('Preparing to send to gcloud vision the following request:');
-        console.log(JSON.stringify(request));
-
-        client
-            .batchAnnotateImages(request)
-            .then(response => {
-                console.log('Response from gcloud vision for batch request is the following:');
-                console.log(response);
-                resolve(response);
-            })
-            .catch(err => {
-                console.error(err);
-                reject(err);
-            });
-
-    });
-}
-
 /*  Utility function in order to delete unnecessary data from the tag detection and then
 *   return just labels and relative scores (take only the ones which are above the minScore threshold)*/
 function filterTags(gcloudJson, minScore){
@@ -120,4 +92,4 @@ function filterTags(gcloudJson, minScore){
     return retObj;
 }
 
-module.exports = {analyseRemoteImage, analyseBatchRemoteImages, filterTags};
+module.exports = {analyseRemoteImage, filterTags};

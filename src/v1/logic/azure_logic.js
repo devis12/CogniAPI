@@ -10,6 +10,9 @@ require('dotenv').config();
 //perform the api request with node-fetch
 const fetch = require('node-fetch');
 
+//url for our backend storage
+const backendStorage = require('../general').backendStorage;
+
 //key for accessing the azure computer vision api services
 const subscriptionKeyV = process.env.AZURE_VISION_KEY1;
 
@@ -95,6 +98,10 @@ const subscriptionKeyF = process.env.AZURE_FACE_KEY1;
 //url for accessing the azure face api services
 const uriBaseFace = require('../general').uriAzureFace;
 
+// following boolean will indicate if the user data stored and related to a face will be saved on azure
+// or on our personal storage
+const userDataStoredOnAzure = require('../general').userDataStoredOnAzure;
+
 function faceRemoteImage(imageUrl){
     return new Promise((resolve, reject) => {
         console.log('azure face request for ' + imageUrl);//TODO debugging
@@ -102,7 +109,7 @@ function faceRemoteImage(imageUrl){
         // Request parameters.
         const params = {
             'returnFaceId': 'true',
-            'returnFaceLandmarks': 'false',
+            'returnFaceLandmarks': 'true',
             'returnFaceAttributes': 'age,gender,headPose,smile,facialHair,glasses,' +
                 'emotion,hair,makeup,occlusion,accessories,blur,exposure,noise'
         };
@@ -175,12 +182,11 @@ function createFaceGroup(loggedUser){
 function addToFaceGroup(imageUrl, target, userData, loggedUser){
     let groupName = (loggedUser + faceGroupSuffix).toLowerCase();//fix bug azure largelistface id
     return new Promise((resolve, reject) => {
-        //console.log("azure face request for adding a face (" + imageUrl + ") to the following face group " + groupName);//TODO debugging
 
         // Request parameters.
         const params = {
             'largeFaceListId': groupName,
-            'userData': userData, // name of the recognized person (supplied by the user)
+            'userData': (userDataStoredOnAzure)? userData:'',  // if the userData are not stored on azure you will need to upload them on our storage
             'targetFace': target
         };
 
@@ -189,8 +195,6 @@ function addToFaceGroup(imageUrl, target, userData, loggedUser){
             uriBQ += p + "=" + params[p] + "&";
         }
         uriBQ = uriBQ.slice(0,uriBQ.length - 1);//erase last &
-
-        //console.log("Node-fetch to " + uriBQ);
 
         fetch(uriBQ, {
             method: 'POST',
@@ -205,8 +209,34 @@ function addToFaceGroup(imageUrl, target, userData, loggedUser){
                 if(!res.ok)//res.status<200 || res.status >=300
                     reject({err_status: res.status});
                 else{
-                    console.log('Added face correctly for user ' + loggedUser);
-                    resolve(200); // face added to face group
+                    console.log('Added face correctly for user ' + loggedUser + ' on azure face list');
+
+                    if(userDataStoredOnAzure){
+                        resolve(200); // face added to face group on azure with user data saved on azure
+
+                    }else{ // if the userData are not stored on azure you will need to upload them on our storage
+
+                        res.json().then( resAddFace => {
+                            console.log('Adding in our cogni storage ' + userData + ' for ' + resAddFace['persistedFaceId']);
+                            fetch(backendStorage + '/addFace.php', {
+                                method: 'POST',
+                                body: JSON.stringify({
+                                    cogni_fg: groupName,
+                                    pface_id: resAddFace['persistedFaceId'],
+                                    user_data: userData}),
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            })
+                                .then( resStorage => {
+                                    resolve(200);
+                                })
+
+                                .catch( errStorage => {
+                                    reject(errStorage);
+                                });
+                        });
+                    }
                 }
 
             }).catch(e => reject(e));
@@ -221,25 +251,48 @@ function patchFace(persistedFaceId, userData, loggedUser){
     let groupName = (loggedUser + faceGroupSuffix).toLowerCase();//fix bug azure largelistface id
     return new Promise((resolve, reject) => {
 
-        let uriBQ = uriBaseFace + '/largefacelists/' + groupName + '/persistedfaces/' + persistedFaceId; //uriBQ will be uri base with the parameters
+        if(userDataStoredOnAzure){// face will be patch to face group on azure with user data saved on azure
+            let uriBQ = uriBaseFace + '/largefacelists/' + groupName + '/persistedfaces/' + persistedFaceId; //uriBQ will be uri base with the parameters
 
-        fetch(uriBQ, {
-            method: 'PATCH',
-            body: '{"userData": ' + '"' + userData + '"}',
-            headers: {
-                'Content-Type': 'application/json',
-                'Ocp-Apim-Subscription-Key' : subscriptionKeyF
-            }
-        })
-            .then(res => {
-                if(!res.ok)//res.status<200 || res.status >=300
-                    reject({err_status: res.status});
-                else{
-                    console.log('Patched face correctly for user ' + loggedUser);
-                    resolve(200); // face added to face group
+            fetch(uriBQ, {
+                method: 'PATCH',
+                body: '{"userData": ' + '"' + userData + '"}',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Ocp-Apim-Subscription-Key' : subscriptionKeyF
                 }
+            })
+                .then(res => {
+                    if(!res.ok)//res.status<200 || res.status >=300
+                        reject({err_status: res.status});
+                    else{
+                        console.log('Patched face correctly for user ' + loggedUser);
+                        resolve(200); // face added to face group
+                    }
 
-            }).catch(e => reject(e));
+                }).catch(e => reject(e));
+
+        }else{ // face will be patch to face group on our cogni storage with user data saved on it
+
+            fetch(backendStorage + '/patchFaceData.php', {
+                method: 'POST',
+                body: JSON.stringify({
+                    cogni_fg: groupName,
+                    pface_id: persistedFaceId,
+                    user_data: userData}),
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+                .then( resStorage => {
+                    console.log('Patched face correctly for user ' + loggedUser + ' on cogni storage');
+                    resolve(200);
+                })
+
+                .catch( errStorage => {
+                    reject(errStorage);
+                });
+        }
 
     });
 }
@@ -292,7 +345,7 @@ function findSimilar(loggedUser, imgAnnotation){
         findSimilarPersistedIds(groupName, faceIds)
             .then( persistedIds => {
             console.log('The following array of persisted ids has been discovered for ' + imgAnnotation.imgUrl + ': ' + JSON.stringify(persistedIds));
-            //resolve(imgAnnotation);
+
             findUserDataPersistedIds(groupName, persistedIds).then(persistedUserData => {
                 console.log('The following array of persisted userData has been discovered for ' + imgAnnotation.imgUrl + ': ' + JSON.stringify(persistedUserData));
                 for(let i = 0; i < imgAnnotation.azureF.length; i++){
@@ -379,22 +432,35 @@ function findSimilarPersistedIds(faceList, faceIds){
 */
 function findUserDataPersistedIds(faceList, persistedFaceIds) {
     return new Promise((resolve, reject) => {
-        let uriBQ2 = uriBaseFace + '/largefacelists/' + faceList + '/persistedfaces/';
+        let uriBQ2 = '';
+
+        if(userDataStoredOnAzure) // retrieve userData from azure directly
+            uriBQ2 = uriBaseFace + '/largefacelists/' + faceList + '/persistedfaces/';
+
+        else
+            uriBQ2 = backendStorage + '/getFaceData.php?cogni_fg=' + faceList + '&pface_id='; // retrieve data from cogni storage
 
         let promisesPersistedUserData = [];//promises to find for a matching persisted face id the user data related to it
 
         //find the user data related for the persisted face ids
         for(let i = 0; i < persistedFaceIds.length; i++){
-            if(persistedFaceIds[i])
+            if(persistedFaceIds[i] && userDataStoredOnAzure) {
                 promisesPersistedUserData.push(
                     fetch(uriBQ2 + persistedFaceIds[i], {
                         method: 'GET',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Ocp-Apim-Subscription-Key' : subscriptionKeyF
+                            'Ocp-Apim-Subscription-Key': subscriptionKeyF
                         }
                     }));
-            else
+
+            }else if(persistedFaceIds[i] && !userDataStoredOnAzure) { // retrieve data from cogni storage
+                promisesPersistedUserData.push(
+                    fetch(uriBQ2 + persistedFaceIds[i], {
+                        method: 'GET'
+                    }));
+
+            }else
                 promisesPersistedUserData.push(new Promise(res => res(null)));
         }
 
