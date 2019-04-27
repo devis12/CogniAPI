@@ -25,7 +25,7 @@ function analyseRemoteImage(imageUrl, visualFeatures){
 
         // Request parameters.
         const params = {
-            'visualFeatures': 'Tags,Categories,Description,Color,Faces,ImageType,Adult',
+            'visualFeatures': 'Tags,Objects,Categories,Description,Color,Faces,ImageType,Adult',
             'details': 'Celebrities,Landmarks',
             'language': 'en'
         };
@@ -75,7 +75,7 @@ function filterTags(azureJson, minScore){
     retObj['tags'] = [];
     for(let tagAnn of azureJson['tags']){
         if(Number.parseFloat(tagAnn['confidence']) > minScore)
-            retObj['tags'].push({'name': tagAnn['name'], 'score': Number.parseFloat(tagAnn['confidence'])});
+            retObj['tags'].push({'name': tagAnn['name'], 'confidence': Number.parseFloat(tagAnn['confidence'])});
     }
 
     //logo annotations
@@ -86,7 +86,7 @@ function filterTags(azureJson, minScore){
     retObj['captions'] = [];
     for(let captionAnn of azureJson['description']['captions']){
         if(Number.parseFloat(captionAnn['confidence']) > minScore)
-            retObj['captions'].push({'name': captionAnn['text'], 'score': Number.parseFloat(captionAnn['confidence'])});
+            retObj['captions'].push({'name': captionAnn['text'], 'confidence': Number.parseFloat(captionAnn['confidence'])});
     }
 
     return retObj;
@@ -343,15 +343,16 @@ function findSimilar(loggedUser, imgAnnotation){
 
         //find the matching ids for the persisted face ids
         findSimilarPersistedIds(groupName, faceIds)
-            .then( persistedIds => {
-            console.log('The following array of persisted ids has been discovered for ' + imgAnnotation.imgUrl + ': ' + JSON.stringify(persistedIds));
+            .then( persistedIdVals => {//persisted face id + confidence value in an array of max (max candidate) elements
+            console.log('The following array of persisted ids has been discovered for ' + imgAnnotation.imgUrl + ': ' + JSON.stringify(persistedIdVals));
 
-            findUserDataPersistedIds(groupName, persistedIds).then(persistedUserData => {
+            findUserDataForPersistedIds(groupName, persistedIdVals).then(persistedUserData => {
                 console.log('The following array of persisted userData has been discovered for ' + imgAnnotation.imgUrl + ': ' + JSON.stringify(persistedUserData));
-                for(let i = 0; i < imgAnnotation.azureF.length; i++){
-                    imgAnnotation.azureF[i]['persistedName'] = persistedUserData[i];
-                    imgAnnotation.azureF[i]['persistedFaceId'] = persistedIds[i];
+
+                for(let i = 0; i < imgAnnotation.cogniAPI.faces.length; i++){
+                    imgAnnotation.cogniAPI.faces[i]['similarFaces'] = persistedUserData[i];
                 }
+
                 resolve(imgAnnotation);
             });
         });
@@ -371,7 +372,7 @@ function findSimilarPersistedIds(faceList, faceIds){
         // Request parameters (to add faceId for each request)
         const bodyParams = {
             'largeFaceListId': faceList,
-            "maxNumOfCandidatesReturned": 1,
+            "maxNumOfCandidatesReturned": 3,
             "mode": "matchPerson"
         };
 
@@ -404,10 +405,10 @@ function findSimilarPersistedIds(faceList, faceIds){
         Promise.all(promisesPersistedId).then(persistedValues => {
             for(let i = 0; i < persistedValues.length; i++){
                 waitAllPIds.push(new Promise( resolve2 => {
-                    persistedValues[i].json().then(persistedJSONValue => {
-                        if(persistedJSONValue.length > 0){
-                            console.log('Adding the following p_id ' + persistedJSONValue[0]['persistedFaceId'] + ' for ' + faceIds[i]);
-                            persistedIds[i] = persistedJSONValue[0]['persistedFaceId'];
+                    persistedValues[i].json().then(persistedJSONValues => {
+                        if(persistedJSONValues.length > 0){
+                            console.log('Adding the following p_ids ' + persistedJSONValues + ' for ' + faceIds[i]);
+                            persistedIds[i] = persistedJSONValues;
                         }else{
                             console.log('Adding the following p_id undefined for ' + faceIds[i]);
                             persistedIds[i] = undefined;
@@ -430,7 +431,7 @@ function findSimilarPersistedIds(faceList, faceIds){
 /*  Given an array of persisted face ids and the faceList in which to find them, return an array of
     userData related to those faces
 */
-function findUserDataPersistedIds(faceList, persistedFaceIds) {
+function findUserDataForPersistedIds(faceList, persistedFaces) {
     return new Promise((resolve, reject) => {
         let uriBQ2 = '';
 
@@ -440,47 +441,71 @@ function findUserDataPersistedIds(faceList, persistedFaceIds) {
         else
             uriBQ2 = backendStorage + '/getFaceData.php?cogni_fg=' + faceList + '&pface_id='; // retrieve data from cogni storage
 
-        let promisesPersistedUserData = [];//promises to find for a matching persisted face id the user data related to it
+        let promisesPersistedUserData = [];//promises to find for every array of matching persisted faces the user data related to it
 
         //find the user data related for the persisted face ids
-        for(let i = 0; i < persistedFaceIds.length; i++){
-            if(persistedFaceIds[i] && userDataStoredOnAzure) {
-                promisesPersistedUserData.push(
-                    fetch(uriBQ2 + persistedFaceIds[i], {
-                        method: 'GET',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Ocp-Apim-Subscription-Key': subscriptionKeyF
-                        }
-                    }));
+        for(let i = 0; i < persistedFaces.length; i++){
+            promisesPersistedUserData[i] = new Promise( (resolve, reject) => {
+                let promisesPersistedUserDataFaceI = [];
+                if(Array.isArray(persistedFaces[i])){
 
-            }else if(persistedFaceIds[i] && !userDataStoredOnAzure) { // retrieve data from cogni storage
-                promisesPersistedUserData.push(
-                    fetch(uriBQ2 + persistedFaceIds[i], {
-                        method: 'GET'
-                    }));
+                    for(let j=0; j<persistedFaces[i].length; j++) {//to every face has been associate a number of candidates (retrieve user data for each one of them)
+                        if (persistedFaces[i][j]['persistedFaceId'] &&
+                            userDataStoredOnAzure) {//you've got to make a call for every persisted face ids
 
-            }else
-                promisesPersistedUserData.push(new Promise(res => res(null)));
+                            promisesPersistedUserDataFaceI.push(
+                                fetch(uriBQ2 + persistedFaces[i][j]['persistedFaceId'], {
+                                    method: 'GET',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Ocp-Apim-Subscription-Key': subscriptionKeyF
+                                    }
+                                }));
+
+                        } else if (persistedFaces[i][j]['persistedFaceId']
+                            && !userDataStoredOnAzure) { // retrieve data from cogni storage
+
+                            promisesPersistedUserDataFaceI.push(
+                                fetch(uriBQ2 + persistedFaces[i][j]['persistedFaceId'], {
+                                    method: 'GET'
+                                }));
+
+                        } else
+                            promisesPersistedUserDataFaceI.push(new Promise(res => res(null)));
+                    }
+
+                    Promise.all(promisesPersistedUserDataFaceI).then( arrayOfUserData => resolve(arrayOfUserData));
+                }else{
+
+                   resolve(null);
+                }
+
+            });
         }
 
         let waitAllPData = [];//json still need to be unpacked
-        let persistedData = [];//actual array of persisted user data related to the persistent ids
-        persistedData = new Array(persistedFaceIds.length).fill(false);//fill the array with silly values, so you can mantain the order
 
         //get userdata for the matching persisted id
         Promise.all(promisesPersistedUserData).then(persistedValues => {
             for(let i = 0; i < persistedValues.length; i++){
                 waitAllPData.push(new Promise( resolve2 => {
+
                     if(persistedValues[i]){
-                        persistedValues[i].json().then(persistedJSONValue => {
-                            console.log('Adding the following p_userdata ' + persistedJSONValue['userData'] + ' for ' + persistedFaceIds[i]);
-                            persistedData[i] = (persistedJSONValue['userData']);
-                            resolve2(null);
-                        });
+                        let unpackEverything = []; //unpack all the jsons and then resolve promise for face i
+                        for(let j=0; j<persistedValues[i].length; j++){
+                            unpackEverything.push(new Promise((resolve3) => {
+                                persistedValues[i][j].json().then(persistedJSONValue => {
+                                    console.log('Adding the following p_userdata ' + persistedJSONValue['userData'] + ' for ' + persistedFaces[i][j]);
+                                    persistedFaces[i][j]['userData'] = (persistedJSONValue['userData']);
+                                    resolve3(null);
+                                });
+                            }));
+                        }
+                        Promise.all(unpackEverything).then( () => resolve2(null));
+
                     }else{
-                        console.log('Adding the following p_userdata undefined for ' + persistedFaceIds[i]);
-                        persistedData[i] = (undefined);
+                        console.log('Adding the following p_userdata undefined for ' + persistedFaces[i]);
+                        persistedFaces[i] = (undefined);
                         resolve2(null);
                     }
 
@@ -489,7 +514,7 @@ function findUserDataPersistedIds(faceList, persistedFaceIds) {
 
             //wait the unpack of all the json objects with the persistent ids
             Promise.all(waitAllPData).then(() => {
-                resolve(persistedData);
+                resolve(persistedFaces);
             });
 
         });

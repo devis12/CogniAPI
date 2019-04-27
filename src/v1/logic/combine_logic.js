@@ -15,6 +15,9 @@ const gcloudVision = require('./gcloud_logic');
 //AZURE COMPUTER VISION & AZURE FACE FUNCTIONS (API CALLS)
 const azureCompVision = require('./azure_logic');
 
+//description tags utilities
+const descriptionUtilities = require('./descriptionUtilities');
+
 //Face utilities in order to combine, merge & cross check data
 const faceUtilities = require('./faceUtilities');
 
@@ -40,8 +43,6 @@ function multipleAnalysisRemoteImage(imageUrl, loggedUser){
         let pAzureV = azureCompVision.analyseRemoteImage(imageUrl);
 
         Promise.all([pGCloudV, pAzureV, pAzureF]).then( values => {
-            //apply to google cloud vision faceAnnotations the same ids which azure provides for each face
-            values[0]['faceAnnotations'] = faceUtilities.matchFaces(values[0][0]['faceAnnotations'], values[2]);
 
             let jsonCombineRes = {
                 annotationDate: new Date(),
@@ -49,14 +50,9 @@ function multipleAnalysisRemoteImage(imageUrl, loggedUser){
                 imgName: imageUrl.substr(imageUrl.lastIndexOf('/')+1),
                 gCloud: values[0],
                 azureV: values[1],
-                azureF: values[2]
+                azureF: values[2],
+                cogniAPI: reconciliateSchema(values[0][0], values[1], values[2])
             };
-            jsonCombineRes['cogniAPI'] = {};//add field for cogniAPI data
-
-            jsonCombineRes['cogniAPI']['safety'] = safetyUtilities.buildSafetyTag(values[1]['adult'], values[0][0]['safeSearchAnnotation']);
-            jsonCombineRes['cogniAPI']['colorInfo'] = colorInfoUtilities.buildColorInfoTag(
-                                                        values[1]['color'],
-                                                        values[0][0]['imagePropertiesAnnotation']['dominantColors']);
 
             if(loggedUser){
                 //add tag in case you find a similar faces, already registered by the logged user
@@ -99,8 +95,8 @@ function imagesAnn(username, imgUrls, caching, imgAnnb64){
             }
 
             Promise.all(imgAnnotationPromises).then(data => { //format json object with result
-                console.log('\n\n\nFINAL JSON:\n');
-                console.log(JSON.stringify(data));
+                //console.log('\n\n\nFINAL JSON:\n');
+                //console.log(JSON.stringify(data));
                 if(!caching) {//save on the cache system on first (or later if the caching system is disabled) the retrieved data
                     encodeB64Annotation(username, data);
                 }
@@ -142,6 +138,27 @@ function asyncImagesAnn(username, imgUrls){
     });
 }
 
+/*  This function will reconcile the schema in a unique and standard one
+* */
+function reconciliateSchema(gCloudVision, azureVision, azureFace){
+    let cogniAPI = {};//add field for cogniAPI data
+
+    cogniAPI['description'] = descriptionUtilities.buildDescriptionObj(gCloudVision, azureVision);
+    cogniAPI['tags'] = descriptionUtilities.buildTagsObj(gCloudVision, azureVision);
+    cogniAPI['objects'] = descriptionUtilities.buildObjectsObj(gCloudVision, azureVision);
+    cogniAPI['landmarks'] = descriptionUtilities.buildLandmarksObj(gCloudVision, azureVision);
+    cogniAPI['texts'] = descriptionUtilities.buildTextsObj(gCloudVision, azureVision);
+
+    cogniAPI['faces'] = faceUtilities.buildFacesObj(gCloudVision['faceAnnotations'], azureFace, azureVision);
+
+    cogniAPI['safetyAnnotation'] = safetyUtilities.buildSafetyObj(azureVision['adult'], gCloudVision['safeSearchAnnotation']);
+    cogniAPI['metadata'] = azureVision['metadata'];
+    cogniAPI['graphicalData'] = colorInfoUtilities.buildColorInfoObj(azureVision['color'], gCloudVision['imagePropertiesAnnotation']['dominantColors']);
+
+
+    return cogniAPI;
+}
+
 /*  This function will help us in order to store the answer elaborated from the api
     encoding it in base 64 for future development & analysis (a sort of caching system)
 * */
@@ -169,7 +186,7 @@ function encodeB64Annotation(username, imgAnnotations){
             }
         }).then(php_response => {
             php_response.json().then(php_JSONresp =>{
-                console.log('PHP response: ');console.log(php_response); console.log(php_JSONresp);
+                //console.log('PHP response: ');console.log(php_response); console.log(php_JSONresp);
             });
         });
     }

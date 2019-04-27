@@ -114,29 +114,4 @@ router.post('/azure/trainFace/:loggedUser', (req, res) => {
 
 });
 
-// azure analyze remote image (just for tags, description & categories)
-router.get('/azure/tags', (req, res) => {
-    azureLogic.analyseRemoteImage(req.query.url, 'Tags,Categories,Description')
-        .then( data => {
-
-            let minScore = Number.parseFloat(req.query.minscore); //threshold
-            if(Number.isNaN(minScore) || minScore < 0 || minScore > 1) //with invalid input or without the param just keep 0 as default
-                minScore = 0.0;
-
-            res.status(200).json(azureLogic.filterTags(data, minScore));
-        })
-        .catch(e => {
-            let err_status;
-            let err_msg = {};
-            if(e.err_status != null){
-                err_status = e.err_status;
-            }else{
-                err_status = 503;
-                err_msg = '' + e;
-            }
-
-            res.status(err_status).json({err_msg: err_msg});
-        });
-});
-
 module.exports = router;

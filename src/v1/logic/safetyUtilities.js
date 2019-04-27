@@ -6,95 +6,37 @@
 *   @author: Devis
 */
 
-/*  Commodity function in order to translate enum gcloud likelihood values into double*/
-//TODO evaluate with marcos appropriate convertion value
-function toDouble(likelihood){
-    if(likelihood == 'VERY_UNLIKELY')
-        return 0.1;
-    else if(likelihood == 'UNLIKELY')
-        return 0.2;
-    else if(likelihood == 'POSSIBLE')
-        return 0.5;
-    else if(likelihood == 'LIKELY')
-        return 0.8;
-    else if(likelihood == 'VERY_LIKELY')
-        return 0.9;
-    else//UNKNOWN or general error
-        return -1;
-}
 
+/*  Build a unique single safety field tag from azure and google cloud data
+    (same schema independent of considered property)
+* */
+function buildSafetyField(azureAdult, gcloudSafetyAnn, property){
+    //property string starting with capital letter
+    let propertyC = property.substr(0,1).toUpperCase() + property.substr(1,property.length-1);
 
+    return {
+        'present': azureAdult['is' + propertyC + 'Content'],
+        'confidence': azureAdult[property + 'Score'],
+        'confidenceLikelihood': gcloudSafetyAnn[property],
 
-/*  return boolean value for adult content by cross-checking values between the services*/
-function isAdultContent(azureAdult, gcloudSafetyAnn){
-    if(     !azureAdult['isAdultContent']
-
-            &&
-
-            (   gcloudSafetyAnn['adult'] == 'VERY_UNLIKELY' ||
-                gcloudSafetyAnn['adult'] == 'UNLIKELY' ||
-                gcloudSafetyAnn['adult'] == 'UNKNOWN'
-            )
-        )
-
-        return false;
-
-    return true;
-}
-
-/*  return boolean value for adult content by cross-checking values between the services*/
-function isRacyContent(azureAdult, gcloudSafetyAnn){
-    if(     !azureAdult['isRacyContent']
-
-        &&
-
-        (   gcloudSafetyAnn['racy'] == 'VERY_UNLIKELY' ||
-            gcloudSafetyAnn['racy'] == 'UNLIKELY' ||
-            gcloudSafetyAnn['racy'] == 'UNKNOWN'
-        )
-    )
-
-        return false;
-
-    return true;
+    };
 }
 
 /*  Build cogniAPI safety obj provided azure adult & google cloud
 *   safety annotation
 *   */
-function buildSafetyTag(azureAdult, gcloudSafetyAnn){
+function buildSafetyObj(azureAdult, gcloudSafetyAnn){
     let resObj = {};
 
-    //boolean isadultContent value
-    resObj['isAdultContent'] = isAdultContent(azureAdult, gcloudSafetyAnn);
-    if((resObj['isAdultContent'] || azureAdult['adultScore'] > 0.1)  && toDouble(gcloudSafetyAnn['adult']) > 0){
-        //in the case of true or significant value by azure perform the average between gcloud & azure values
-        resObj['adult'] = (azureAdult['adultScore'] + toDouble(gcloudSafetyAnn['adult']))/2;
-    }else{
-        //just take azure score, since it's really low
-        resObj['adult'] = azureAdult['adultScore'];
-    }
+    //for this we have data from both cognitive services
+    resObj['adult'] = buildSafetyField(azureAdult, gcloudSafetyAnn, 'adult');
+    resObj['racy'] = buildSafetyField(azureAdult, gcloudSafetyAnn, 'racy');
 
-    //boolean isracyContent value
-    resObj['isRacyContent'] = isRacyContent(azureAdult, gcloudSafetyAnn);
-    if((resObj['isRacyContent'] || azureAdult['racyScore'] > 0.1) && toDouble(gcloudSafetyAnn['racy']) > 0){
-        //in the case of true or significant value by azure perform the average between gcloud & azure values
-        resObj['racy'] = (azureAdult['racyScore'] + toDouble(gcloudSafetyAnn['racy']))/2;
-    }else{
-        //just take azure score, since it's really low
-        resObj['racy'] = azureAdult['racyScore'];
-    }
-
-    //add gcloud additional tags for safety
-    if(toDouble(gcloudSafetyAnn['spoof']) > 0)
-        resObj['spoof'] = toDouble(gcloudSafetyAnn['spoof']);
-
-    if(toDouble(gcloudSafetyAnn['medical']) > 0)
-        resObj['medical'] = toDouble(gcloudSafetyAnn['medical']);
-
-    if(toDouble(gcloudSafetyAnn['violence']) > 0)
-        resObj['violence'] = toDouble(gcloudSafetyAnn['violence']);
+    //for the following threes just likelihood data from google cloud
+    resObj['spoof'] = buildSafetyField(azureAdult, gcloudSafetyAnn, 'racy');
+    resObj['medical'] = buildSafetyField(azureAdult, gcloudSafetyAnn, 'racy');
+    resObj['violence'] = buildSafetyField(azureAdult, gcloudSafetyAnn, 'racy');
 
     return resObj;
 }
-module.exports = {buildSafetyTag};
+module.exports = {buildSafetyObj};

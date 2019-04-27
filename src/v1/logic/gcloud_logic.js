@@ -70,23 +70,23 @@ function filterTags(gcloudJson, minScore){
 
     //landmark annotations
     retObj['landmarks'] = [];
-    for(let landMarkAnn of gcloudJson[0]['landmarkAnnotations']){
+    for(let landMarkAnn of gcloudJson['landmarkAnnotations']){
         if(Number.parseFloat(landMarkAnn['score']) > minScore)
-            retObj['landmarks'].push({'name': landMarkAnn['description'], 'score': Number.parseFloat(landMarkAnn['score'])});
+            retObj['landmarks'].push({'name': landMarkAnn['description'], 'confidence': Number.parseFloat(landMarkAnn['score'])});
     }
 
     //logo annotations
     retObj['logos'] = [];
-    for(let logoAnn of gcloudJson[0]['logoAnnotations']){
+    for(let logoAnn of gcloudJson['logoAnnotations']){
         if(Number.parseFloat(logoAnn['score']) > minScore)
-            retObj['logos'].push({'name': logoAnn['description'], 'score': Number.parseFloat(logoAnn['score'])});
+            retObj['logos'].push({'name': logoAnn['description'], 'confidence': Number.parseFloat(logoAnn['score'])});
     }
 
     //logo annotations
     retObj['tags'] = [];
-    for(let labelAnn of gcloudJson[0]['labelAnnotations']){
+    for(let labelAnn of gcloudJson['labelAnnotations']){
         if(Number.parseFloat(labelAnn['score']) > minScore)
-            retObj['tags'].push({'name': labelAnn['description'], 'score': Number.parseFloat(labelAnn['score'])});
+            retObj['tags'].push({'name': labelAnn['description'], 'confidence': Number.parseFloat(labelAnn['score'])});
     }
 
     return retObj;

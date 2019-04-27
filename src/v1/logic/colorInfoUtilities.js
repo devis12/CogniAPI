@@ -9,12 +9,11 @@
 /*  Build cogniAPI colorInfo obj provided azure adult & google cloud
 *   safety annotation
 *   */
-function buildColorInfoTag(azureColor, gcloudColorInfo){
-    let resObj = {};
+function buildColorInfoObj(azureColor, gcloudColorInfo){
+    let resObj = azureColor;
 
-    let gcloudColors = gcloudColorInfo['colors'];
-    
+    resObj['colorInfoRGBA'] = gcloudColorInfo['colors'];
 
     return resObj;
 }
-module.exports = {buildColorInfoTag};
+module.exports = {buildColorInfoObj};

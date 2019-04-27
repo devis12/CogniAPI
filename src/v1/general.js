@@ -10,9 +10,11 @@
 const backendStorage = 'https://cogniapi.altervista.org/';
 
 //uri base in order to call azure computer vision rest apis
-const uriAzureCompVision = 'https://westeurope.api.cognitive.microsoft.com/vision/v2.0';
+//const uriAzureCompVision = 'https://westeurope.api.cognitive.microsoft.com/vision/v2.0';
+const uriAzureCompVision = 'https://westcentralus.api.cognitive.microsoft.com/vision/v2.0';
 //uri base in order to call azure face rest apis
-const uriAzureFace = 'https://westeurope.api.cognitive.microsoft.com/face/v1.0';
+//const uriAzureFace = 'https://westeurope.api.cognitive.microsoft.com/face/v1.0';
+const uriAzureFace = 'https://westcentralus.api.cognitive.microsoft.com/face/v1.0';
 
 
 

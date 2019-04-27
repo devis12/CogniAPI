@@ -61,55 +61,56 @@
                 <%# The following script will put a box for every azure face detected, if the user wants to relate some
                 user data (possibly a name+surname) she/he'll perform it bu clicking Recognize  %>
                 <%  if(user != null){
-                        for(azureFace of imgAnnotated.azureF){
+                        for(face of imgAnnotated.cogniAPI.faces){
                 %>
                     <div class="row alert-warning p-3 mt-2 mb-3 mr-5 ml-5"
                          onmouseover="boundFace(
-                                 'face_box_<%= imgAnnotated.imgName%>', 1, '<%= imgAnnotated.azureV.metadata.width%>', '<%= imgAnnotated.azureV.metadata.height%>',
-                                 '<%=azureFace.faceRectangle.top%>', '<%=azureFace.faceRectangle.left%>',
-                                 '<%=azureFace.faceRectangle.width%>', '<%=azureFace.faceRectangle.height%>',
+                                 'face_box_<%= imgAnnotated.imgName%>', 1, '<%= imgAnnotated.cogniAPI.metadata.width%>', '<%= imgAnnotated.cogniAPI.metadata.height%>',
+                                 '<%=face.faceRectangle.tl.y%>', '<%=face.faceRectangle.tl.x%>',
+                                 '<%=face.faceRectangle.width%>', '<%=face.faceRectangle.height%>',
                                  )"
                          onmouseleave="eraseFaceBound('face_box_<%= imgAnnotated.imgName%>')"
                     >
                         <p class="mt-4">
-                            <h5>FACE_ID "<%=azureFace.faceId%>"</h5>
+                            <h5>FACE_ID "<%=face.faceId%>"</h5>
 
-                            <% if(azureFace.persistedFaceId != undefined && azureFace.persistedName != undefined) { %>
+                            <% if(face.similarFaces != undefined) { %>
 
-                            <span class="font-italic">
-                                It has been recognized as <span class="font-weight-bold"> <%=azureFace.persistedName%> </span> (persisted_id: "<%=azureFace.persistedFaceId%>")
-                            </span>
-                        <br />
-                    </span>
-                            In future image submissions recognize <%= azureFace.persistedFaceId%> as ... <br />
+                                <% for(similarFace of face.similarFaces){ %>
 
-                            <% }else if(imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){ %>
+                                    <br />
+                                    <span class="font-italic mt-1">
+                                        It has been recognized as <span class="font-weight-bold"> <%=similarFace['userData']%> </span> (persisted_id: "<%=similarFace['persistedFaceId']%>") with a <span class="text-success font-weight-bold">confidence</span> value
+                                        of <span class="text-success font-weight-bold"><%= similarFace['confidence']%></span>
+                                    </span>
 
-                                In future image submissions recognize <%= azureFace.faceId%> as ... <br />
+                                    In future image submissions recognize <%= similarFace['persistedFaceId']%> as ... <br />
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" placeholder="Name" id="name_<%= similarFace['persistedFaceId']%>">
+                                        <button onclick="patchFaceGroup('<%= similarFace['persistedFaceId']%>',
+                                                document.getElementById('name_<%= similarFace['persistedFaceId']%>').value,
+                                                '<%= user%>')">
+                                            Update
+                                        </button>
+                                    </div>
+
+                                <% } %>
 
                             <% } %>
                         </p>
 
-                        <% if(azureFace.persistedFaceId != undefined && azureFace.persistedName != undefined) { %>
-                            <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Name" id="name_<%= azureFace.persistedFaceId%>">
-                                <button onclick="patchFaceGroup('<%= azureFace.persistedFaceId%>',
-                                        document.getElementById('name_<%= azureFace.persistedFaceId%>').value,
-                                        '<%= user%>')">
-                                    Update
-                                </button>
-                            </div>
+                        <% if(face.similarFaces != undefined) { %>
 
                             <% if(imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){%>
                                 <p class="text-danger mt-2">
                                     Did I recognize it wrong?
                                 <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Name" id="name_<%= azureFace.faceId%>">
-                                    <input type="hidden" id="target_<%= azureFace.faceId%>"
-                                           value="<%= azureFace.faceRectangle.left%>,<%= azureFace.faceRectangle.top%>,<%= azureFace.faceRectangle.width%>,<%= azureFace.faceRectangle.height%>">
+                                    <input type="text" class="form-control" placeholder="Name" id="name_<%= face.faceId%>">
+                                    <input type="hidden" id="target_<%= face.faceId%>"
+                                           value="<%= face.faceRectangle.tl.x%>,<%= face.faceRectangle.tl.y%>,<%= face.faceRectangle.width%>,<%= face.faceRectangle.height%>">
                                     <button onclick="addToFaceGroup('<%= imgAnnotated.imgUrl%>',
-                                            document.getElementById('target_<%= azureFace.faceId%>').value,
-                                            document.getElementById('name_<%= azureFace.faceId%>').value,
+                                            document.getElementById('target_<%= face.faceId%>').value,
+                                            document.getElementById('name_<%= face.faceId%>').value,
                                             '<%= user%>')">
                                         Recognize
                                     </button>
@@ -117,14 +118,15 @@
                                 </p>
 
                             <% }%>
+
                         <% }else if(imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){ %>
                             <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Name" id="name_<%= azureFace.faceId%>">
-                                <input type="hidden" id="target_<%= azureFace.faceId%>"
-                                       value="<%= azureFace.faceRectangle.left%>,<%= azureFace.faceRectangle.top%>,<%= azureFace.faceRectangle.width%>,<%= azureFace.faceRectangle.height%>">
+                                <input type="text" class="form-control" placeholder="Name" id="name_<%= face.faceId%>">
+                                <input type="hidden" id="target_<%= face.faceId%>"
+                                       value="<%= face.faceRectangle.tl.x%>,<%= face.faceRectangle.tl.y%>,<%= face.faceRectangle.width%>,<%= face.faceRectangle.height%>">
                                 <button onclick="addToFaceGroup('<%= imgAnnotated.imgUrl%>',
-                                        document.getElementById('target_<%= azureFace.faceId%>').value,
-                                        document.getElementById('name_<%= azureFace.faceId%>').value,
+                                        document.getElementById('target_<%= face.faceId%>').value,
+                                        document.getElementById('name_<%= face.faceId%>').value,
                                         '<%= user%>')">
                                     Recognize
                                 </button>
