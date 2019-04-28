@@ -173,8 +173,8 @@ function matchFaces(gcloudFaces, azureFaces, aCelebrities){
 * */
 function buildFacesObj(gcloudFaces, azureFaces, azureCV){
 
-    //apply to google cloud vision faceAnnotations the same ids which azure provides for each face
-    matchFaces(gcloudFaces, azureFaces, azureCelebrities(azureCV));
+    if(gcloudFaces && azureFaces && azureCV)
+        matchFaces(gcloudFaces, azureFaces, azureCelebrities(azureCV));//apply to google cloud vision faceAnnotations the same ids which azure provides for each face
 
     // in here the matching operations has already taken place
     return buildFacesObjComplete(gcloudFaces, azureFaces);
@@ -187,20 +187,24 @@ function buildFacesObj(gcloudFaces, azureFaces, azureCV){
 function buildFacesObjComplete(gcloudFaces, azureFaces){
     let faces = [];
     let matchedFaces = {};
-    for (let gFace of gcloudFaces) {
-        let face = {};
 
-        if(gFace['azureId']) { // there is a matching face for the considered gFace
-            matchedFaces[gFace['azureId']] = true;
-            populateFaceObjAzure(face, gFace['azureData']);
+    if(gcloudFaces){
+        for (let gFace of gcloudFaces) {
+            let face = {};
 
+            if(gFace['azureId']) { // there is a matching face for the considered gFace
+                matchedFaces[gFace['azureId']] = true;
+                populateFaceObjAzure(face, gFace['azureData']);
+
+            }
+
+            populateFaceObjGcloud(face, gFace);
+            faces.push(face);
         }
-
-        populateFaceObjGcloud(face, gFace);
-        faces.push(face);
     }
 
-    if(gcloudFaces.length != azureFaces.length){ // there could be faces from azure not considered
+
+    if(azureFaces){ // there could be faces from azure not considered
         for(let aFace of azureFaces){
             if(!matchedFaces[aFace['faceId']]){ // face not been considered yet
                 let face = {};

@@ -6,11 +6,6 @@
 *   @author: Devis
 */
 
-//GOOGLE CLOUD VISION FUNCTIONS (API CALLS)
-const gcloudVision = require('./gcloud_logic');
-//AZURE COMPUTER VISION & AZURE FACE FUNCTIONS (API CALLS)
-const azureCompVision = require('./azure_logic');
-
 /*  Utility function in order to build a sorted array of string with tag names
 *   provided a preexisted array string of tag names and an array of tag objects
 *   with a property called name which is the tag name*/
@@ -51,35 +46,113 @@ function uniqueTagNames(tags, tagsConfidence){
     build a common description objects
 * */
 function buildDescriptionObj(gCloudV, azureCV){
+    let descr = {}; // descr obj to return
+
     let categoriesArray = []; //array of categories based on the 86 taxonomy defined by Azure
-    for(let category of azureCV['categories']){
-        categoriesArray.push({name: category['name'],confidence: category['score']});
+    let tags = []; // generic tags array
+
+    if(azureCV) {
+        for (let category of azureCV['categories']) {
+            categoriesArray.push({name: category['name'], confidence: category['score']});
+        }
+
+        descr['categories'] = categoriesArray; // you can have this value just with azure cv
+        descr['captions'] = azureCV['description']['captions'];// you can have this value just with azure cv
+
+        tags = azureCV['description']['tags']; // add cv generic tags
     }
 
-    let tags = azureCV['description']['tags'];
     let tagsConfidence = buildTagsObj(gCloudV, azureCV, 0.0, 'name');//build tags object in order to fill better the generic_tags array
 
     //process to add tags retrieved in azure computer vision and google cloud vision tag fields into generic_tags
     tags = uniqueTagNames(tags, tagsConfidence);
 
-    return {
-        generic_tags: [tags],
-        captions: azureCV['description']['captions'],
-        categories: categoriesArray
-    };
+    descr['generic_tags'] = [tags];
+
+    return descr;
 }
+
+/*  Utility function in order to delete unnecessary data from the tag detection and then
+*   return just labels and relative scores (take only the ones which are above the minScore threshold)*/
+function gcloudFilterTags(gcloudJson, minScore){
+
+    let retObj = {};
+
+    //landmark annotations
+    retObj['landmarks'] = [];
+    for(let landMarkAnn of gcloudJson['landmarkAnnotations']){
+        if(Number.parseFloat(landMarkAnn['score']) > minScore)
+            retObj['landmarks'].push({'name': landMarkAnn['description'], 'confidence': Number.parseFloat(landMarkAnn['score'])});
+    }
+
+    //logo annotations
+    retObj['logos'] = [];
+    for(let logoAnn of gcloudJson['logoAnnotations']){
+        if(Number.parseFloat(logoAnn['score']) > minScore)
+            retObj['logos'].push({'name': logoAnn['description'], 'confidence': Number.parseFloat(logoAnn['score'])});
+    }
+
+    //logo annotations
+    retObj['tags'] = [];
+    for(let labelAnn of gcloudJson['labelAnnotations']){
+        if(Number.parseFloat(labelAnn['score']) > minScore)
+            retObj['tags'].push({'name': labelAnn['description'], 'confidence': Number.parseFloat(labelAnn['score'])});
+    }
+
+    return retObj;
+}
+
+/*  Utility function in order to delete unnecessary data from the tag detection and then
+*   return just labels and relative scores (take only the ones which are above the minScore threshold)*/
+function azureFilterTags(azureJson, minScore){
+
+    let retObj = {};
+
+    //categories annotations
+    retObj['categories'] = [];
+    for(let category of azureJson['categories']){
+        if(Number.parseFloat(category['score']) > minScore)
+            retObj['categories'].push(category);
+    }
+
+    //tags annotations
+    retObj['tags'] = [];
+    for(let tagAnn of azureJson['tags']){
+        if(Number.parseFloat(tagAnn['confidence']) > minScore)
+            retObj['tags'].push({'name': tagAnn['name'], 'confidence': Number.parseFloat(tagAnn['confidence'])});
+    }
+
+    //logo annotations
+    retObj['generic_tags'] = azureJson['description']['tags'];
+
+
+    //tags annotations
+    retObj['captions'] = [];
+    for(let captionAnn of azureJson['description']['captions']){
+        if(Number.parseFloat(captionAnn['confidence']) > minScore)
+            retObj['captions'].push({'name': captionAnn['text'], 'confidence': Number.parseFloat(captionAnn['confidence'])});
+    }
+
+    return retObj;
+}
+
 
 /*  Starting from google cloud vision and azure computer vision objects
     build a common tag objects
 * */
 function buildTagsObj(gCloudV, azureCV, minScore = 0.0, sortCat = 'confidence'){
     let tags = [];
-    let gCloudTags = gcloudVision.filterTags(gCloudV, minScore);
-    tags = tags.concat(gCloudTags['tags']);
-    tags = tags.concat(gCloudTags['logos']);
 
-    let azureTags = azureCompVision.filterTags(azureCV, minScore);
-    tags = tags.concat(azureTags['tags']);
+    if(gCloudV) {
+        let gCloudTags = gcloudFilterTags(gCloudV, minScore);
+        tags = tags.concat(gCloudTags['tags']);
+        tags = tags.concat(gCloudTags['logos']);
+    }
+
+    if(azureCV) {
+        let azureTags = azureFilterTags(azureCV, minScore);
+        tags = tags.concat(azureTags['tags']);
+    }
 
     //move all the tags name to lower case
     for(let t of tags){
@@ -133,21 +206,32 @@ function azureLandmarks(azureCV){
 * */
 function buildLandmarksObj(gCloudV, azureCV, minScore = 0.0){
     let landmarks = [];
-    let gCloudLandMarks = gCloudV['landmarkAnnotations'];
-    //apply standard bounding box to all the landmarks objects
-    gCloudVObjsToCogniBoundingBox(gCloudLandMarks, azureCV['metadata']['width'], azureCV['metadata']['height']);
-    for(let gLandMark of gCloudLandMarks){
-        landmarks.push({
-            name: gLandMark['description'],
-            confidence: gLandMark['score'],
-            latitude: gLandMark['locations'][0]['latLng']['latitude'],
-            longitude: gLandMark['locations'][0]['latLng']['longitude'],
-            boundingBox: gLandMark['boundingBox']
-        });
+
+    if(gCloudV){
+        let gCloudLandMarks = gCloudV['landmarkAnnotations'];
+        //apply standard bounding box to all the landmarks objects
+        if(azureCV)
+            gCloudVObjsToCogniBoundingBox(gCloudLandMarks, azureCV['metadata']['width'], azureCV['metadata']['height']);
+
+        else//need to retrieve image sizes from gcloud (already done and put in the metadata tag of gcloudv with appropriate calls)
+            gCloudVObjsToCogniBoundingBox(gCloudLandMarks, gCloudV['metadata']['width'], gCloudV['metadata']['height']);
+
+
+        for(let gLandMark of gCloudLandMarks){
+            landmarks.push({
+                name: gLandMark['description'],
+                confidence: gLandMark['score'],
+                latitude: gLandMark['locations'][0]['latLng']['latitude'],
+                longitude: gLandMark['locations'][0]['latLng']['longitude'],
+                boundingBox: gLandMark['boundingBox']
+            });
+        }
     }
 
-    let azureCVLandmarks = azureLandmarks(azureCV);
-    landmarks = landmarks.concat(azureCVLandmarks);
+    if(azureCV){
+        let azureCVLandmarks = azureLandmarks(azureCV);
+        landmarks = landmarks.concat(azureCVLandmarks);
+    }
 
     landmarks.sort((a, b) => {
         if(a['confidence']>b['confidence'])
@@ -167,29 +251,38 @@ function buildLandmarksObj(gCloudV, azureCV, minScore = 0.0){
 * */
 function buildObjectsObj(gCloudV, azureCV, minScore = 0.0){
     let objects = [];
-    let gCloudObjects = gCloudV['localizedObjectAnnotations'];
-    //apply standard bounding box to all the detected objects
-    gCloudVObjsToCogniBoundingBox(gCloudObjects, azureCV['metadata']['width'], azureCV['metadata']['height']);
-    for(let gCloudObj of gCloudObjects){
-        if(gCloudObj['score'] > minScore) { //filter out unwanted tags
-            objects.push({
-                name: gCloudObj['name'],
-                confidence: gCloudObj['score'],
-                boundingBox: gCloudObj['boundingBox']
-            });
+    if(gCloudV) {
+        let gCloudObjects = gCloudV['localizedObjectAnnotations'];
+        //apply standard bounding box to all the detected objects
+        if(azureCV)
+            gCloudVObjsToCogniBoundingBox(gCloudObjects, azureCV['metadata']['width'], azureCV['metadata']['height']);
+
+        else//need to retrieve image sizes from gcloud (already done and put in the metadata tag of gcloudv with appropriate calls)
+            gCloudVObjsToCogniBoundingBox(gCloudObjects, gCloudV['metadata']['width'], gCloudV['metadata']['height']);
+
+        for (let gCloudObj of gCloudObjects) {
+            if (gCloudObj['score'] > minScore) { //filter out unwanted tags
+                objects.push({
+                    name: gCloudObj['name'],
+                    confidence: gCloudObj['score'],
+                    boundingBox: gCloudObj['boundingBox']
+                });
+            }
         }
     }
 
-    let azureObjects = azureCV['objects'];
-    //apply standard bounding box to all the detected objects
-    azureCVVObjsToCogniBoundingBox(azureObjects, azureCV['metadata']['width']);
-    for(let aObj of azureObjects){
-        if(aObj['confidence'] > minScore) { //filter out unwanted tags
-            objects.push({
-                name: aObj['object'],
-                confidence: aObj['confidence'],
-                boundingBox: aObj['boundingBox']
-            });
+    if(azureCV){
+        let azureObjects = azureCV['objects'];
+        //apply standard bounding box to all the detected objects
+        azureCVVObjsToCogniBoundingBox(azureObjects, azureCV['metadata']['width']);
+        for(let aObj of azureObjects){
+            if(aObj['confidence'] > minScore) { //filter out unwanted tags
+                objects.push({
+                    name: aObj['object'],
+                    confidence: aObj['confidence'],
+                    boundingBox: aObj['boundingBox']
+                });
+            }
         }
     }
 
@@ -212,7 +305,12 @@ function buildTextsObj(gCloudV, azureCV, minScore = 0.0){
     let texts = [];
     let gCloudTexts = gCloudV['textAnnotations'];
     //apply standard bounding box to all the detected objects
-    gCloudVObjsToCogniBoundingBox(gCloudTexts, azureCV['metadata']['width'], azureCV['metadata']['height']);
+    if(azureCV)
+        gCloudVObjsToCogniBoundingBox(gCloudTexts, azureCV['metadata']['width'], azureCV['metadata']['height']);
+
+    else//need to retrieve image sizes from gcloud (already done and put in the metadata tag of gcloudv with appropriate calls)
+        gCloudVObjsToCogniBoundingBox(gCloudTexts, gCloudV['metadata']['width'], gCloudV['metadata']['height']);
+
     for(let gCloudObj of gCloudTexts){
         texts.push({
             name: gCloudObj['description'],

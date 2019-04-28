@@ -58,7 +58,7 @@ function multipleAnalysisRemoteImage(imageUrl, loggedUser, minScore = 0.0){
                 //add tag in case you find a similar faces, already registered by the logged user
                 azureCompVision.findSimilar(
                     loggedUser,
-                    jsonCombineRes)
+                    jsonCombineRes.cogniAPI.faces)
 
                     .then(() => resolve(jsonCombineRes));
             }else
@@ -151,9 +151,9 @@ function reconciliateSchema(gCloudVision, azureVision, azureFace, minScore){
 
     cogniAPI['faces'] = faceUtilities.buildFacesObj(gCloudVision['faceAnnotations'], azureFace, azureVision);
 
-    cogniAPI['safetyAnnotation'] = safetyUtilities.buildSafetyObj(azureVision['adult'], gCloudVision['safeSearchAnnotation']);
+    cogniAPI['safetyAnnotation'] = safetyUtilities.buildSafetyObj(gCloudVision['safeSearchAnnotation'], azureVision['adult']);
     cogniAPI['metadata'] = azureVision['metadata'];
-    cogniAPI['graphicalData'] = colorInfoUtilities.buildColorInfoObj(azureVision['color'], azureVision['imageType'], gCloudVision['imagePropertiesAnnotation']['dominantColors']);
+    cogniAPI['graphicalData'] = colorInfoUtilities.buildColorInfoObj(gCloudVision['imagePropertiesAnnotation']['dominantColors'], azureVision['color'], azureVision['imageType']);
 
 
     return cogniAPI;

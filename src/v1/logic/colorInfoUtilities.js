@@ -9,12 +9,19 @@
 /*  Build cogniAPI colorInfo obj provided azure adult & google cloud
 *   safety annotation
 *   */
-function buildColorInfoObj(azureColor, azureImageType, gcloudColorInfo){
-    let resObj = azureColor;
+function buildColorInfoObj(gcloudColorInfo, azureColor, azureImageType){
+    let resObj = null;
+    if(azureColor && azureImageType) {
+        resObj = azureColor;
+        resObj['clipArtType'] = azureImageType['clipArtType'];
+        resObj['lineDrawingType'] = (+azureImageType['lineDrawingType']) == 1;
+    }
 
-    resObj['colorInfoRGBA'] = gcloudColorInfo['colors'];
-    resObj['clipArtType'] = azureImageType['clipArtType'];
-    resObj['lineDrawingType'] = (+azureImageType['lineDrawingType']) == 1;
+    if(gcloudColorInfo) {
+        if (resObj == null)
+            resObj = {};
+        resObj['colorInfoRGBA'] = gcloudColorInfo['colors'];
+    }
 
     return resObj;
 }

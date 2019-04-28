@@ -10,45 +10,107 @@ const router = express.Router();
 //azure logic implemented just for testing purpose
 const azureLogic = require('../logic/azure_logic');
 
-// azure analyze remote image just for testing purpose
-router.get('/azure/analyze', (req, res) => {
-    azureLogic.analyseRemoteImage(req.query.url)
-        .then( data => {
-            res.status(200).json(data);
-        })
-        .catch(e => {
-            let err_status;
-            let err_msg = {};
-            if(e.err_status != null){
-                err_status = e.err_status;
-            }else{
-                err_status = 503;
-                err_msg = '' + e;
-            }
+// azure analyse remote image
+router.get('/azure/analyse', (req, res) => {
+    let imgUrl = req.query.url;
+    let loggedUser = req.query.user;
+    let minScore = Number.parseFloat(req.query.minscore); //threshold
+    if(Number.isNaN(minScore) || minScore < 0 || minScore > 1) //with invalid input or without the param just keep 0 as default
+        minScore = 0.0;
 
-            res.status(err_status).json({err_msg: err_msg, err_status: err_status});
-        });
+    if(imgUrl){
+        azureLogic.analyseRemoteImageCogniSchema(imgUrl, loggedUser, minScore)
+            .then( jsonAnn => res.status(200).json(jsonAnn))
+            .catch(e => res.status(400).json({}));
+    }else{
+        res.status(400).json({});
+    }
 });
 
-// azure analyze remote image just for testing purpose
-router.get('/azure/face', (req, res) => {
+// azure face analysis remote image just for testing purpose
+router.get('/azure/faces', (req, res) => {
 
-    azureLogic.faceRemoteImage(req.query.url)
-        .then( data => {
-            res.status(200).json(data);
-        })
-        .catch(e => {
-            let err_status;
-            let err_msg = {};
-            if(e.err_status != null){
-                err_status = e.err_status;
-            }else{
-                err_status = 503;
-                err_msg = '' + e;
-            }
+    let imgUrl = req.query.url;
+    let loggedUser = req.query.user;
 
-            res.status(err_status).json({err_msg: err_msg});
-        });
+    if(imgUrl){
+        azureLogic.analyseRemoteImageCogniSchema(imgUrl, loggedUser, 0.0)
+            .then( jsonAnn => res.status(200).json(jsonAnn.faces))
+            .catch(e => res.status(400).json({}));
+    }else{
+        res.status(400).json({});
+    }
+});
+
+// azure tags analysis remote image
+router.get('/azure/tags', (req, res) => {
+    let imgUrl = req.query.url;
+    let minScore = Number.parseFloat(req.query.minscore); //threshold
+    if(Number.isNaN(minScore) || minScore < 0 || minScore > 1) //with invalid input or without the param just keep 0 as default
+        minScore = 0.0;
+
+    if(imgUrl){
+        azureLogic.analyseRemoteImageCogniSchema(imgUrl, null, minScore)
+            .then( jsonAnn => res.status(200).json(jsonAnn.tags))
+            .catch(e => res.status(400).json({}));
+    }else{
+        res.status(400).json({});
+    }
+});
+
+// azure objects analysis remote image
+router.get('/azure/objects', (req, res) => {
+    let imgUrl = req.query.url;
+    let minScore = Number.parseFloat(req.query.minscore); //threshold
+    if(Number.isNaN(minScore) || minScore < 0 || minScore > 1) //with invalid input or without the param just keep 0 as default
+        minScore = 0.0;
+
+    if(imgUrl){
+        azureLogic.analyseRemoteImageCogniSchema(imgUrl, null, minScore)
+            .then( jsonAnn => res.status(200).json(jsonAnn.objects))
+            .catch(e => res.status(400).json({}));
+    }else{
+        res.status(400).json({});
+    }
+});
+
+// azure landmarks analysis remote image
+router.get('/azure/landmarks', (req, res) => {
+    let imgUrl = req.query.url;
+
+    if(imgUrl){
+        azureLogic.analyseRemoteImageCogniSchema(imgUrl, null, 0.0)
+            .then( jsonAnn => res.status(200).json(jsonAnn.landmarks))
+            .catch(e => res.status(400).json({}));
+    }else{
+        res.status(400).json({});
+    }
+});
+
+// azure safety analysis remote image
+router.get('/azure/safety', (req, res) => {
+    let imgUrl = req.query.url;
+
+    if(imgUrl){
+        azureLogic.analyseRemoteImageCogniSchema(imgUrl, null, 0.0)
+            .then( jsonAnn => res.status(200).json(jsonAnn.safetyAnnotation))
+            .catch(e => res.status(400).json({}));
+    }else{
+        res.status(400).json({});
+    }
+});
+
+// azure graphicalData analysis remote image
+router.get('/azure/colors', (req, res) => {
+    let imgUrl = req.query.url;
+
+    if(imgUrl){
+        azureLogic.analyseRemoteImageCogniSchema(imgUrl, null, 0.0)
+            .then( jsonAnn => res.status(200).json(jsonAnn.graphicalData))
+            .catch(e => res.status(400).json({}));
+    }else{
+        res.status(400).json({});
+    }
 });
 
 // azure add face to face group

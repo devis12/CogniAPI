@@ -21,6 +21,21 @@ const requestNative = require('request-promise-native').defaults({
 });
 let base64 = true;//slow if you use it, but you're more sure that you don't fall in gcloud api bugs
 
+//this will be useful when we have just gcloud annotation and we need image sizes
+const requestImageSize = require('request-image-size');
+
+//description tags utilities
+const descriptionUtilities = require('./descriptionUtilities');
+
+//Face utilities in order to combine, merge & cross check data
+const faceUtilities = require('./faceUtilities');
+
+//safety tags utilities
+const safetyUtilities = require('./safetyUtilities');
+
+//colorinfo tags utilities
+const colorInfoUtilities = require('./colorInfoUtilities');
+
 //functions to perform single image annotation
 function analyseRemoteImage(imageUrl, customFeatures){
     return new Promise((resolve, reject) => {
@@ -62,34 +77,47 @@ function analyseRemoteImage(imageUrl, customFeatures){
     });
 }
 
-/*  Utility function in order to delete unnecessary data from the tag detection and then
-*   return just labels and relative scores (take only the ones which are above the minScore threshold)*/
-function filterTags(gcloudJson, minScore){
+//functions to perform single image annotation, but to pack the values as a json respecting the cogniAPI schema
+function analyseRemoteImageCogniSchema(imageUrl, minScore){
+    return new Promise( resolve => {
+        analyseRemoteImage(imageUrl).then(gCloudJSON => {
+            let imgAnn = gCloudJSON[0];//gCloudJSON is basically an array of imgAnnotations, but we're analyzing a single one
+            requestImageSize(imageUrl)
+                .then(size => {
+                    imgAnn['metadata'] = {};
+                    imgAnn['metadata']['width'] = size['width'];
+                    imgAnn['metadata']['height'] = size['height'];
+                    imgAnn['metadata']['format'] = size['format'];
 
-    let retObj = {};
+                    resolve (reconciliateSchemaGCloud(imgAnn, minScore));
+                })
+                .catch(err => console.error(err));
 
-    //landmark annotations
-    retObj['landmarks'] = [];
-    for(let landMarkAnn of gcloudJson['landmarkAnnotations']){
-        if(Number.parseFloat(landMarkAnn['score']) > minScore)
-            retObj['landmarks'].push({'name': landMarkAnn['description'], 'confidence': Number.parseFloat(landMarkAnn['score'])});
-    }
 
-    //logo annotations
-    retObj['logos'] = [];
-    for(let logoAnn of gcloudJson['logoAnnotations']){
-        if(Number.parseFloat(logoAnn['score']) > minScore)
-            retObj['logos'].push({'name': logoAnn['description'], 'confidence': Number.parseFloat(logoAnn['score'])});
-    }
-
-    //logo annotations
-    retObj['tags'] = [];
-    for(let labelAnn of gcloudJson['labelAnnotations']){
-        if(Number.parseFloat(labelAnn['score']) > minScore)
-            retObj['tags'].push({'name': labelAnn['description'], 'confidence': Number.parseFloat(labelAnn['score'])});
-    }
-
-    return retObj;
+        });
+    });
 }
 
-module.exports = {analyseRemoteImage, filterTags};
+/*  This function will reconcile the schema in a unique and standard one
+* */
+function reconciliateSchemaGCloud(gCloudVision, minScore){
+    let cogniAPI = {};//add field for cogniAPI data
+
+
+    cogniAPI['description'] = descriptionUtilities.buildDescriptionObj(gCloudVision);
+    cogniAPI['tags'] = descriptionUtilities.buildTagsObj(gCloudVision, null, minScore);
+    cogniAPI['objects'] = descriptionUtilities.buildObjectsObj(gCloudVision, null, minScore);
+    cogniAPI['landmarks'] = descriptionUtilities.buildLandmarksObj(gCloudVision);
+    cogniAPI['texts'] = descriptionUtilities.buildTextsObj(gCloudVision);
+
+    cogniAPI['faces'] = faceUtilities.buildFacesObj(gCloudVision['faceAnnotations']);
+
+    cogniAPI['safetyAnnotation'] = safetyUtilities.buildSafetyObj(gCloudVision['safeSearchAnnotation']);
+    cogniAPI['metadata'] = gCloudVision['metadata'];
+    cogniAPI['graphicalData'] = colorInfoUtilities.buildColorInfoObj(gCloudVision['imagePropertiesAnnotation']['dominantColors']);
+
+
+    return cogniAPI;
+}
+
+module.exports = {analyseRemoteImage, analyseRemoteImageCogniSchema};

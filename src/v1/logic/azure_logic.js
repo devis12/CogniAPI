@@ -19,6 +19,18 @@ const subscriptionKeyV = process.env.AZURE_VISION_KEY1;
 //url for accessing the azure computer vision api services
 const uriBaseVision = require('../general').uriAzureCompVision;
 
+//description tags utilities
+const descriptionUtilities = require('./descriptionUtilities');
+
+//Face utilities in order to combine, merge & cross check data
+const faceUtilities = require('./faceUtilities');
+
+//safety tags utilities
+const safetyUtilities = require('./safetyUtilities');
+
+//colorinfo tags utilities
+const colorInfoUtilities = require('./colorInfoUtilities');
+
 function analyseRemoteImage(imageUrl, visualFeatures){
     return new Promise((resolve, reject) => {
         console.log('azure comp vision request for ' + imageUrl);//TODO debugging
@@ -58,39 +70,52 @@ function analyseRemoteImage(imageUrl, visualFeatures){
     });
 }
 
-/*  Utility function in order to delete unnecessary data from the tag detection and then
-*   return just labels and relative scores (take only the ones which are above the minScore threshold)*/
-function filterTags(azureJson, minScore){
+//functions to perform single image annotation, but to pack the values as a json respecting the cogniAPI schema
+function analyseRemoteImageCogniSchema(imageUrl, loggedUser, minScore){
+    return new Promise( resolve => {
 
-    let retObj = {};
+        let azureCVP = analyseRemoteImage(imageUrl);
+        let azureFP = faceRemoteImage(imageUrl);
 
-    //categories annotations
-    retObj['categories'] = [];
-    for(let category of azureJson['categories']){
-        if(Number.parseFloat(category['score']) > minScore)
-            retObj['categories'].push(category);
-    }
+        Promise.all([azureCVP, azureFP]).then(azureAnn => {
+            let azureCV = azureAnn[0];
+            let azureF = azureAnn[1];
 
-    //tags annotations
-    retObj['tags'] = [];
-    for(let tagAnn of azureJson['tags']){
-        if(Number.parseFloat(tagAnn['confidence']) > minScore)
-            retObj['tags'].push({'name': tagAnn['name'], 'confidence': Number.parseFloat(tagAnn['confidence'])});
-    }
+            let cogniAPI = reconciliateSchemaAzure(azureCV, azureF, minScore);
 
-    //logo annotations
-    retObj['generic_tags'] = azureJson['description']['tags'];
+            if(loggedUser){
+                //add tag in case you find a similar faces, already registered by the logged user
+                findSimilar(
+                    loggedUser,
+                    cogniAPI.faces)
 
+                    .then(() => resolve(cogniAPI));
+            }else
+                resolve(cogniAPI);
+        });
 
-    //tags annotations
-    retObj['captions'] = [];
-    for(let captionAnn of azureJson['description']['captions']){
-        if(Number.parseFloat(captionAnn['confidence']) > minScore)
-            retObj['captions'].push({'name': captionAnn['text'], 'confidence': Number.parseFloat(captionAnn['confidence'])});
-    }
-
-    return retObj;
+    });
 }
+
+/*  This function will reconcile the schema in a unique and standard one
+* */
+function reconciliateSchemaAzure(azureCV, azureFaces, minScore){
+    let cogniAPI = {};//add field for cogniAPI data
+
+    cogniAPI['description'] = descriptionUtilities.buildDescriptionObj(null, azureCV);
+    cogniAPI['tags'] = descriptionUtilities.buildTagsObj(null, azureCV, minScore);
+    cogniAPI['objects'] = descriptionUtilities.buildObjectsObj(null, azureCV, minScore);
+    cogniAPI['landmarks'] = descriptionUtilities.buildLandmarksObj(null, azureCV);
+
+    cogniAPI['faces'] = faceUtilities.buildFacesObj(null, azureFaces, azureCV);
+
+    cogniAPI['safetyAnnotation'] = safetyUtilities.buildSafetyObj(null, azureCV['adult']);
+    cogniAPI['metadata'] = azureCV['metadata'];
+    cogniAPI['graphicalData'] = colorInfoUtilities.buildColorInfoObj(null, azureCV['color'], azureCV['imageType']);
+
+    return cogniAPI;
+}
+
 
 //key for accessing the azure face api services
 const subscriptionKeyF = process.env.AZURE_FACE_KEY1;
@@ -387,26 +412,27 @@ function trainFaceGroup(loggedUser){
     to the logged user and will be associated with the info the user has supplied in the
     first place
 */
-function findSimilar(loggedUser, imgAnnotation){
+function findSimilar(loggedUser, cogniFaces){
     let groupName = (loggedUser + faceGroupSuffix).toLowerCase();//fix bug azure largelistface id
     return new Promise((resolve, reject) => {
 
         let faceIds = []; //stored the face id (not persisted) in the same order for easily perform some operations later
-        for(let azFace of imgAnnotation.azureF){faceIds.push(azFace['faceId']);}
+        for(let azFace of cogniFaces){
+            if(azFace['faceId'])//find similar just if the face has effectively been detected (also) by azure face
+                faceIds.push(azFace['faceId']);
+        }
 
         //find the matching ids for the persisted face ids
         findSimilarPersistedIds(groupName, faceIds)
             .then( persistedIdVals => {//persisted face id + confidence value in an array of max (max candidate) elements
-            console.log('The following array of persisted ids has been discovered for ' + imgAnnotation.imgUrl + ': ' + JSON.stringify(persistedIdVals));
 
             findUserDataForPersistedIds(groupName, persistedIdVals).then(persistedUserData => {
-                console.log('The following array of persisted userData has been discovered for ' + imgAnnotation.imgUrl + ': ' + JSON.stringify(persistedUserData));
 
-                for(let i = 0; i < imgAnnotation.cogniAPI.faces.length; i++){
-                    imgAnnotation.cogniAPI.faces[i]['similarFaces'] = persistedUserData[i];
+                for(let i = 0; i < cogniFaces.length; i++){
+                    cogniFaces[i]['similarFaces'] = persistedUserData[i];
                 }
 
-                resolve(imgAnnotation);
+                resolve(cogniFaces);
             });
         });
     });
@@ -574,6 +600,5 @@ function findUserDataForPersistedIds(faceList, persistedFaces) {
     });
 }
 
-module.exports = {  analyseRemoteImage, faceRemoteImage, createFaceGroup,
-                    addToFaceGroup, patchFace, forgetFace, trainFaceGroup, findSimilar,
-                    filterTags};
+module.exports = {  analyseRemoteImage, faceRemoteImage, analyseRemoteImageCogniSchema, createFaceGroup,
+                    addToFaceGroup, patchFace, forgetFace, trainFaceGroup, findSimilar};
