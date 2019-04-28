@@ -113,7 +113,6 @@ function buildTagsObj(gCloudV, azureCV, minScore = 0.0, sortCat = 'confidence'){
 /*  Providing the object returned by azure computer vision
 *   see if there is any landmarks in it and put all of them in an array*/
 function azureLandmarks(azureCV){
-    console.log('cuao   ');
     let landmarks = [];
     let categories = azureCV['categories'];
 
@@ -172,22 +171,26 @@ function buildObjectsObj(gCloudV, azureCV, minScore = 0.0){
     //apply standard bounding box to all the detected objects
     gCloudVObjsToCogniBoundingBox(gCloudObjects, azureCV['metadata']['width'], azureCV['metadata']['height']);
     for(let gCloudObj of gCloudObjects){
-        objects.push({
-            name: gCloudObj['name'],
-            confidence: gCloudObj['score'],
-            boundingBox: gCloudObj['boundingBox']
-        });
+        if(gCloudObj['score'] > minScore) { //filter out unwanted tags
+            objects.push({
+                name: gCloudObj['name'],
+                confidence: gCloudObj['score'],
+                boundingBox: gCloudObj['boundingBox']
+            });
+        }
     }
 
     let azureObjects = azureCV['objects'];
     //apply standard bounding box to all the detected objects
     azureCVVObjsToCogniBoundingBox(azureObjects, azureCV['metadata']['width']);
     for(let aObj of azureObjects){
-        objects.push({
-            name: aObj['object'],
-            confidence: aObj['confidence'],
-            boundingBox: aObj['boundingBox']
-        });
+        if(aObj['confidence'] > minScore) { //filter out unwanted tags
+            objects.push({
+                name: aObj['object'],
+                confidence: aObj['confidence'],
+                boundingBox: aObj['boundingBox']
+            });
+        }
     }
 
     objects.sort((a, b) => {

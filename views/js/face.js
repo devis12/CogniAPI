@@ -17,9 +17,9 @@ function addToFaceGroup(imageUrl, target, userData, loggedUser){
     let urlFG = null;
 
     if(herokuTest)
-        urlFG = 'https://cogni-api.herokuapp.com' + '/azure/addFace/' + loggedUser;
+        urlFG = 'https://cogni-api.herokuapp.com' + '/azure/faces/' + loggedUser;
     else
-        urlFG = 'http://localhost:3000' + '/azure/addFace/' + loggedUser;//[TODO change this to actual API call when not testing]
+        urlFG = 'http://localhost:3000' + '/azure/faces/' + loggedUser;//[TODO change this to actual API call when not testing]
 
     let bodyParams = {
        //image url
@@ -57,9 +57,9 @@ function patchFaceGroup(persistedFaceId, userData, loggedUser){
     let urlFG = null;
 
     if(herokuTest)
-        urlFG = 'https://cogni-api.herokuapp.com' + '/azure/patchFace/' + loggedUser;
+        urlFG = 'https://cogni-api.herokuapp.com' + '/azure/faces/' + loggedUser;
     else
-        urlFG = 'http://localhost:3000' + '/azure/patchFace/' + loggedUser;//[TODO change this to actual API call when not testing]
+        urlFG = 'http://localhost:3000' + '/azure/faces/' + loggedUser;//[TODO change this to actual API call when not testing]
 
     let bodyParams = {
         //image url
@@ -76,7 +76,7 @@ function patchFaceGroup(persistedFaceId, userData, loggedUser){
         contentType: 'application/json',
         processData: false,
         data: JSON.stringify(bodyParams),
-        type: 'post',
+        type: 'patch',
         success: function (express_script_response) {
             console.log(express_script_response);
             alert('Operation performed successfully');
@@ -93,9 +93,9 @@ function train(loggedUser){
     let urlFG = null;
 
     if(herokuTest)
-        urlFG = 'https://cogni-api.herokuapp.com' + '/azure/trainFace/' + loggedUser;
+        urlFG = 'https://cogni-api.herokuapp.com' + '/azure/faces/train/' + loggedUser;
     else
-        urlFG = 'http://localhost:3000' + '/azure/trainFace/' + loggedUser;//[TODO change this to actual API call when not testing]
+        urlFG = 'http://localhost:3000' + '/azure/faces/train/' + loggedUser;//[TODO change this to actual API call when not testing]
 
 
     $.ajax({

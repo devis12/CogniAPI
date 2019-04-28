@@ -52,7 +52,7 @@ router.get('/azure/face', (req, res) => {
 });
 
 // azure add face to face group
-router.post('/azure/addFace/:loggedUser', (req, res) => {
+router.post('/azure/faces/:loggedUser', (req, res) => {
 
     let imageUrl = req.body.imageUrl;
     let target = req.body.target;
@@ -74,7 +74,7 @@ router.post('/azure/addFace/:loggedUser', (req, res) => {
 });
 
 // azure update face data to face group
-router.post('/azure/patchFace/:loggedUser', (req, res) => {
+router.patch('/azure/faces/:loggedUser', (req, res) => {
 
     let persistedFaceId = req.body.persistedFaceId;
     let userData = req.body.userData;
@@ -94,8 +94,28 @@ router.post('/azure/patchFace/:loggedUser', (req, res) => {
 
 });
 
+// azure update face data to face group
+router.delete('/azure/faces/:loggedUser', (req, res) => {
+
+    let persistedFaceId = req.query.persistedFaceId;
+    let loggedUser = req.params.loggedUser;
+
+    if(persistedFaceId &&  loggedUser){
+        azureLogic.forgetFace(persistedFaceId, loggedUser)
+            .then( data => {
+                res.status(200).send('Deleted face correctly for user ' + loggedUser);
+            })
+            .catch(e => {
+                res.status(400).send(e);
+            });
+    }else{
+        res.status(400).send('Invalid Data');
+    }
+
+});
+
 // azure train face group
-router.post('/azure/trainFace/:loggedUser', (req, res) => {
+router.post('/azure/faces/train/:loggedUser', (req, res) => {
 
     let loggedUser = req.params.loggedUser;
 

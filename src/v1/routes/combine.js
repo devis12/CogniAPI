@@ -14,8 +14,12 @@ const cogniCombine = require('../logic/combine_logic');
 router.get('/analyse', (req, res) => {
     let imgUrl = req.query.url;
     let loggedUser = req.query.user;
+    let minScore = Number.parseFloat(req.query.minscore); //threshold
+    if(Number.isNaN(minScore) || minScore < 0 || minScore > 1) //with invalid input or without the param just keep 0 as default
+        minScore = 0.0;
+
     if(imgUrl){
-        cogniCombine.multipleAnalysisRemoteImage(imgUrl, loggedUser)
+        cogniCombine.multipleAnalysisRemoteImage(imgUrl, loggedUser, minScore)
             .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI))
             .catch(e => res.status(400).json({}));
     }else{
@@ -39,8 +43,12 @@ router.get('/analyse/faces', (req, res) => {
 //combine tags annotations
 router.get('/analyse/tags', (req, res) => {
     let imgUrl = req.query.url;
+    let minScore = Number.parseFloat(req.query.minscore); //threshold
+    if(Number.isNaN(minScore) || minScore < 0 || minScore > 1) //with invalid input or without the param just keep 0 as default
+        minScore = 0.0;
+
     if(imgUrl){
-        cogniCombine.multipleAnalysisRemoteImage(imgUrl)
+        cogniCombine.multipleAnalysisRemoteImage(imgUrl, null, minScore)
             .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.tags))
             .catch(e => res.status(400).json({}));
     }else{
@@ -51,6 +59,7 @@ router.get('/analyse/tags', (req, res) => {
 //combine description annotation
 router.get('/analyse/description', (req, res) => {
     let imgUrl = req.query.url;
+
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl)
             .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.description))
@@ -63,8 +72,12 @@ router.get('/analyse/description', (req, res) => {
 //combine objects annotation
 router.get('/analyse/objects', (req, res) => {
     let imgUrl = req.query.url;
+    let minScore = Number.parseFloat(req.query.minscore); //threshold
+    if(Number.isNaN(minScore) || minScore < 0 || minScore > 1) //with invalid input or without the param just keep 0 as default
+        minScore = 0.0;
+
     if(imgUrl){
-        cogniCombine.multipleAnalysisRemoteImage(imgUrl)
+        cogniCombine.multipleAnalysisRemoteImage(imgUrl, null, minScore)
             .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.objects))
             .catch(e => res.status(400).json({}));
     }else{

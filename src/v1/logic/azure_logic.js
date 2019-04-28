@@ -267,7 +267,7 @@ function patchFace(persistedFaceId, userData, loggedUser){
                         reject({err_status: res.status});
                     else{
                         console.log('Patched face correctly for user ' + loggedUser);
-                        resolve(200); // face added to face group
+                        resolve(200); // face patched in face group
                     }
 
                 }).catch(e => reject(e));
@@ -296,6 +296,59 @@ function patchFace(persistedFaceId, userData, loggedUser){
 
     });
 }
+
+/*  Given a persisted face & some user_data, store them in the face list related to the user (updating the ones
+*   which are already saved)
+* */
+function forgetFace(persistedFaceId, loggedUser){
+    let groupName = (loggedUser + faceGroupSuffix).toLowerCase();//fix bug azure largelistface id
+    return new Promise((resolve, reject) => {
+
+        let uriBQ = uriBaseFace + '/largefacelists/' + groupName + '/persistedfaces/' + persistedFaceId; //uriBQ will be uri base with the parameters
+
+        fetch(uriBQ, {
+            method: 'DELETE',
+            body: '{}',
+            headers: {
+                'Content-Type': 'application/json',
+                'Ocp-Apim-Subscription-Key' : subscriptionKeyF
+            }
+        })
+            .then(res => {
+                if(!res.ok)//res.status<200 || res.status >=300
+                    reject({err_status: res.status});
+                else{
+                    console.log('Delete persisted face correctly for user ' + loggedUser);
+                    if(!userDataStoredOnAzure){// face user data will be deleted also from our db
+                        fetch(backendStorage + '/deleteFaceData.php', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                cogni_fg: groupName,
+                                pface_id: persistedFaceId
+                            }),
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        })
+                            .then( resStorage => {
+                                console.log('Delete face data correctly for user ' + loggedUser + ' on cogni storage');
+                                resolve(200);
+                            })
+
+                            .catch( errStorage => {
+                                reject(errStorage);
+                            });
+                    }else
+                        resolve(200); // face deleted from face group
+                }
+
+            }).catch(e => reject(e));
+
+
+
+    });
+}
+
 
 /*  Call the method which performs a call to the api in order to instantiate a new face group
 * */
@@ -522,5 +575,5 @@ function findUserDataForPersistedIds(faceList, persistedFaces) {
 }
 
 module.exports = {  analyseRemoteImage, faceRemoteImage, createFaceGroup,
-                    addToFaceGroup, patchFace, trainFaceGroup, findSimilar,
+                    addToFaceGroup, patchFace, forgetFace, trainFaceGroup, findSimilar,
                     filterTags};

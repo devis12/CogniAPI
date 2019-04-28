@@ -35,7 +35,7 @@ const timeInterval = require('../general').asyncAnalysisInterval;
         -Azure Computer Vision
         -Azure Face
 * */
-function multipleAnalysisRemoteImage(imageUrl, loggedUser){
+function multipleAnalysisRemoteImage(imageUrl, loggedUser, minScore = 0.0){
     return new Promise((resolve, reject) => {
         console.log('Request for ' + imageUrl + ' logged as ' + loggedUser);
         let pGCloudV = gcloudVision.analyseRemoteImage(imageUrl);
@@ -51,7 +51,7 @@ function multipleAnalysisRemoteImage(imageUrl, loggedUser){
                 gCloud: values[0],
                 azureV: values[1],
                 azureF: values[2],
-                cogniAPI: reconciliateSchema(values[0][0], values[1], values[2])
+                cogniAPI: reconciliateSchema(values[0][0], values[1], values[2], minScore)
             };
 
             if(loggedUser){
@@ -140,12 +140,12 @@ function asyncImagesAnn(username, imgUrls){
 
 /*  This function will reconcile the schema in a unique and standard one
 * */
-function reconciliateSchema(gCloudVision, azureVision, azureFace){
+function reconciliateSchema(gCloudVision, azureVision, azureFace, minScore){
     let cogniAPI = {};//add field for cogniAPI data
 
     cogniAPI['description'] = descriptionUtilities.buildDescriptionObj(gCloudVision, azureVision);
-    cogniAPI['tags'] = descriptionUtilities.buildTagsObj(gCloudVision, azureVision);
-    cogniAPI['objects'] = descriptionUtilities.buildObjectsObj(gCloudVision, azureVision);
+    cogniAPI['tags'] = descriptionUtilities.buildTagsObj(gCloudVision, azureVision, minScore);
+    cogniAPI['objects'] = descriptionUtilities.buildObjectsObj(gCloudVision, azureVision, minScore);
     cogniAPI['landmarks'] = descriptionUtilities.buildLandmarksObj(gCloudVision, azureVision);
     cogniAPI['texts'] = descriptionUtilities.buildTextsObj(gCloudVision, azureVision);
 
@@ -153,7 +153,7 @@ function reconciliateSchema(gCloudVision, azureVision, azureFace){
 
     cogniAPI['safetyAnnotation'] = safetyUtilities.buildSafetyObj(azureVision['adult'], gCloudVision['safeSearchAnnotation']);
     cogniAPI['metadata'] = azureVision['metadata'];
-    cogniAPI['graphicalData'] = colorInfoUtilities.buildColorInfoObj(azureVision['color'], gCloudVision['imagePropertiesAnnotation']['dominantColors']);
+    cogniAPI['graphicalData'] = colorInfoUtilities.buildColorInfoObj(azureVision['color'], azureVision['imageType'], gCloudVision['imagePropertiesAnnotation']['dominantColors']);
 
 
     return cogniAPI;
