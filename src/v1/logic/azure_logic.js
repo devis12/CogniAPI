@@ -416,25 +416,56 @@ function findSimilar(loggedUser, cogniFaces){
     let groupName = (loggedUser + faceGroupSuffix).toLowerCase();//fix bug azure largelistface id
     return new Promise((resolve, reject) => {
 
-        let faceIds = []; //stored the face id (not persisted) in the same order for easily perform some operations later
-        for(let azFace of cogniFaces){
-            if(azFace['faceId'])//find similar just if the face has effectively been detected (also) by azure face
-                faceIds.push(azFace['faceId']);
-        }
+        checkTrainingStatus(groupName).then( trainingStatus => { // check if the system is trained and could be used in order to answer to some query
+            console.log('Training system status for user ' + loggedUser);
+            console.log(trainingStatus);
+            if(trainingStatus.status == 'succeeded'){ // system is trained, so you can perform the findSimilar task
 
-        //find the matching ids for the persisted face ids
-        findSimilarPersistedIds(groupName, faceIds)
-            .then( persistedIdVals => {//persisted face id + confidence value in an array of max (max candidate) elements
-
-            findUserDataForPersistedIds(groupName, persistedIdVals).then(persistedUserData => {
-
-                for(let i = 0; i < cogniFaces.length; i++){
-                    cogniFaces[i]['similarFaces'] = persistedUserData[i];
+                let faceIds = []; //stored the face id (not persisted) in the same order for easily perform some operations later
+                for(let azFace of cogniFaces){
+                    if(azFace['faceId'])//find similar just if the face has effectively been detected (also) by azure face
+                        faceIds.push(azFace['faceId']);
                 }
 
+                //find the matching ids for the persisted face ids
+                findSimilarPersistedIds(groupName, faceIds)
+                    .then( persistedIdVals => {//persisted face id + confidence value in an array of max (max candidate) elements
+
+                        findUserDataForPersistedIds(groupName, persistedIdVals).then(persistedUserData => {
+
+                            for(let i = 0; i < cogniFaces.length; i++){
+                                cogniFaces[i]['similarFaces'] = persistedUserData[i];
+                            }
+
+                            resolve(cogniFaces);
+                        });
+                    });
+
+            }else{
+
                 resolve(cogniFaces);
-            });
+            }
+
         });
+
+    });
+}
+
+/*  Given a groupName, find if it is trained and it's possible to use the model for query it with
+    the findSimilar task
+* */
+function checkTrainingStatus(groupName){
+    return new Promise((resolve, reject) => {
+        let uriBQ = uriBaseFace + '/largefacelists/' + groupName + '/training';
+        fetch(uriBQ, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Ocp-Apim-Subscription-Key' : subscriptionKeyF
+            }
+        })
+        .then(data => data.json().then(trainingData => resolve(trainingData)));
+
     });
 }
 

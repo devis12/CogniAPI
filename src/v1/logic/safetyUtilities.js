@@ -38,9 +38,9 @@ function buildSafetyObj(gcloudSafetyAnn, azureAdult){
     resObj['racy'] = buildSafetyField(gcloudSafetyAnn, azureAdult, 'racy');
 
     //for the following threes just likelihood data from google cloud
-    resObj['spoof'] = buildSafetyField(gcloudSafetyAnn, azureAdult, 'racy');
-    resObj['medical'] = buildSafetyField(gcloudSafetyAnn, azureAdult, 'racy');
-    resObj['violence'] = buildSafetyField(gcloudSafetyAnn, azureAdult, 'racy');
+    resObj['spoof'] = buildSafetyField(gcloudSafetyAnn, azureAdult, 'spoof');
+    resObj['medical'] = buildSafetyField(gcloudSafetyAnn, azureAdult, 'medical');
+    resObj['violence'] = buildSafetyField(gcloudSafetyAnn, azureAdult, 'violence');
 
     return resObj;
 }

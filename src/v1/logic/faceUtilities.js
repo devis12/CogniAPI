@@ -140,7 +140,7 @@ function matchFaces(gcloudFaces, azureFaces, aCelebrities){
 
     //for every face in GCloud put the bounding rectangle in 4 vertex (bl, br, tl, tr)
     for(let gFace of gcloudFaces){
-        gFace['cogniFaceRect'] = gFaceVertex(gFace['fdBoundingPoly']);
+        gFace['cogniFaceRect'] = gFaceVertex(gFace['boundingPoly']);
     }
 
 
