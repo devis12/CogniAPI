@@ -1,0 +1,13 @@
+<h3 class="text-center">Tags</h3>
+
+<% for(tag of imgAnnotated.cogniAPI.tags){ %>
+    <div class="mt-3 mb-3">
+        <%=tag.name%>
+        <div class="progress">
+            <div class="progress-bar bg-primary" role="progressbar" style="width: <%= Math.floor(tag.confidence*100)%>%>%;"
+                 aria-valuenow="<%= Math.floor(tag.confidence*100)%>" aria-valuemin="0" aria-valuemax="100">
+                <%= Math.floor(tag.confidence*100)%>%
+            </div>
+        </div>
+    </div>
+<% }%>

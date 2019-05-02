@@ -98,3 +98,57 @@ function toggleCacheAnnBtn(checked){
         $('.btn-cached').addClass('btn-dark');
     }
 }
+
+/*  Set to display none all the paper tabs related to an img*/
+function displayNoneAllPaperTabs(imgName){
+    document.getElementById('FaceDetRec_'+imgName).style.display = 'none';
+    document.getElementById('Faces_'+imgName).style.display = 'none';
+    document.getElementById('Description_'+imgName).style.display = 'none';
+    document.getElementById('Tags_'+imgName).style.display = 'none';
+    document.getElementById('Objects_'+imgName).style.display = 'none';
+    document.getElementById('Text_'+imgName).style.display = 'none';
+    document.getElementById('Landmarks_'+imgName).style.display = 'none';
+    document.getElementById('SafetyAnn_'+imgName).style.display = 'none';
+    document.getElementById('Colors_'+imgName).style.display = 'none';
+
+    document.getElementById('img_ann_box_'+imgName).classList.remove('alert-info');
+    document.getElementById('img_ann_box_'+imgName).classList.remove('alert-warning');
+    document.getElementById('img_ann_box_'+imgName).classList.remove('alert-success');
+
+}
+
+/*  Decide what paper tab of the img widget to display*/
+function changePaperTab(paperTab, imgName){
+    displayNoneAllPaperTabs(imgName);
+
+    if(paperTab == 'FaceDetRec_' || paperTab == 'Faces_' || paperTab == 'Description_')
+        document.getElementById('img_ann_box_'+imgName).classList.add('alert-info');
+    else if(paperTab == 'Tags_' || paperTab == 'Objects_' || paperTab == 'SafetyAnn_' || paperTab == 'Colors_')
+        document.getElementById('img_ann_box_'+imgName).classList.add('alert-success');
+    else if(paperTab == 'Text_' || paperTab == 'Landmarks_')
+        document.getElementById('img_ann_box_'+imgName).classList.add('alert-warning');
+
+    document.getElementById(paperTab + imgName).style.display = 'inline';
+}
+
+var tabs = $('.tabs');
+var selector = $('.tabs').find('a').length;
+//var selector = $(".tabs").find(".selector");
+var activeItem = tabs.find('.active');
+var activeWidth = activeItem.innerWidth();
+$(".selector").css({
+    "left": activeItem.position.left + "px",
+    "width": activeWidth + "px"
+});
+
+$(".tabs").on("click","a",function(e){
+    e.preventDefault();
+    $('.tabs a').removeClass("active");
+    $(this).addClass('active');
+    var activeWidth = $(this).innerWidth();
+    var itemPos = $(this).position();
+    $(".selector").css({
+        "left":itemPos.left + "px",
+        "width": activeWidth + "px"
+    });
+});

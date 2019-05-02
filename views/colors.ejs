@@ -1,0 +1,125 @@
+<h3 class="text-center">Colors</h3>
+
+<% graphicalData = imgAnnotated.cogniAPI.graphicalData;%>
+
+<div class="mt-3">
+    <h5>Dominant Color Background</h5>
+    <%= graphicalData.dominantColorBackground%>
+    <span class="ml-1 squareLikelihood" style="color:<%= graphicalData.dominantColorBackground%>;background-color:<%= graphicalData.dominantColorBackground%>">
+        ___
+    </span>
+</div>
+<hr />
+
+<div class="mt-3">
+    <h5>Dominant Color Foreground</h5>
+    <%= graphicalData.dominantColorForeground%>
+    <span class="ml-1 squareLikelihood" style="color:<%= graphicalData.dominantColorForeground%>;background-color:<%= graphicalData.dominantColorForeground%>">
+        ___
+    </span>
+</div>
+<hr />
+
+<div class="mt-3">
+    <h5>Accent Color (hex)</h5>
+    <%= graphicalData.accentColor%>
+    <span class="ml-1 squareLikelihood" style="color: #<%= graphicalData.accentColor%>;background-color:#<%= graphicalData.accentColor%>">
+        ___
+    </span>
+</div>
+<hr />
+
+<div class="mt-3">
+    <h5>Dominant Colors</h5>
+    <% for(color of graphicalData.dominantColors){ %>
+        <p>
+            <%= color%>
+            <span class="ml-1 squareLikelihood" style="color:<%= color%>;background-color:<%= color%>">
+                ___
+            </span>
+        </p>
+    <% }%>
+</div>
+<hr />
+
+<div class="mt-3">
+    <h5>Dominant Colors RGBA (GCloud)</h5>
+    <div class="row mt-1">
+        <div class="col-3 text-center font-weight-bold font-italic">
+            RGBA string
+        </div>
+        <div class="col-3 text-center font-weight-bold font-italic">
+            Color Box
+        </div>
+        <div class="col-6 text-center font-weight-bold font-italic">
+            Pixel Fraction
+        </div>
+    </div>
+    <% for(colorInfo of graphicalData.colorInfoRGBA){ %>
+        <div class="row mt-1">
+            <%  rgbaString = 'rgba(' + colorInfo.color.red + ',' + colorInfo.color.green + ',' + colorInfo.color.blue + ',';
+                if(colorInfo.alpha){
+                    rgbaString += colorInfo.alpha;
+                }else {
+                    rgbaString += '1.0';
+                }
+                rgbaString += ');'
+            %>
+
+            <div class="col-3">
+                <%= rgbaString%>
+            </div>
+            <div class="col-3 squareLikelihood" style="color: <%= rgbaString%>;background-color:<%= rgbaString%>">
+                ___
+            </div>
+            <div class="col-6">
+                <div class="progress">
+                    <div class="progress-bar bg-primary" role="progressbar" style="width: <%= Math.floor(colorInfo.pixelFraction*100)%>%>%;"
+                         aria-valuenow="<%= Math.floor(colorInfo.pixelFraction*100)%>" aria-valuemin="0" aria-valuemax="100">
+                        <%= Math.floor(colorInfo.pixelFraction*100)%>%
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    <% }%>
+</div>
+<hr />
+
+<div class="mt-3">
+    <h5>Clipart Type</h5>
+    <% i= 0%>
+    <% while(i<graphicalData.clipArtType){%>
+        <span class="bg-warning squareLikelihood text-warning"> ___  </span>
+        <% i++;%>
+    <% }%>
+
+    <% while(i<3){%>
+        <span class="bg-light squareLikelihood text-light"> ___ </span>
+        <% i++;%>
+    <% }%>
+    <span class="ml-1"><%= graphicalData.clipArtType%></span>
+</div>
+<hr />
+
+<div class="mt-3">
+    <h5>Black and white image
+        <% if(graphicalData.BWImg){ %>
+            <i class="ml-2 far fa-thumbs-up text-dark"></i>
+        <% }else{ %>
+            <i class="ml-2 far fa-thumbs-down text-dark"></i>
+        <% }%>
+    </h5>
+</div>
+<hr />
+
+<div class="mt-3">
+    <h5>LineDrawing Type
+        <% if(graphicalData.lineDrawingType){ %>
+            <i class="ml-2 far fa-thumbs-up text-dark"></i>
+        <% }else{ %>
+            <i class="ml-2 far fa-thumbs-down text-dark"></i>
+        <% }%>
+    </h5>
+</div>
+<hr />

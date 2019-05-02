@@ -1,0 +1,83 @@
+<div class="text-center">
+    <nav class="tabs">
+        <div class="selector"></div>
+        <a class="active" onclick="changePaperTab('FaceDetRec_', '<%= imgAnnotated.imgName%>')">
+            Face Detection & Recognition
+        </a>
+        <a onclick="changePaperTab('Faces_', '<%= imgAnnotated.imgName%>')">
+            Faces
+        </a>
+        <a onclick="changePaperTab('Description_', '<%= imgAnnotated.imgName%>')">
+            Description
+        </a>
+        <a onclick="changePaperTab('Tags_', '<%= imgAnnotated.imgName%>')">
+            Tags
+        </a>
+        <a onclick="changePaperTab('Objects_', '<%= imgAnnotated.imgName%>')">
+            Objects
+        </a>
+        <a onclick="changePaperTab('Text_', '<%= imgAnnotated.imgName%>')">
+            Text
+        </a>
+        <a onclick="changePaperTab('Landmarks_', '<%= imgAnnotated.imgName%>')">
+            Landmarks
+        </a>
+        <a onclick="changePaperTab('SafetyAnn_', '<%= imgAnnotated.imgName%>')">
+            Safety
+        </a>
+        <a onclick="changePaperTab('Colors_', '<%= imgAnnotated.imgName%>')">
+            Colors
+        </a>
+    </nav>
+
+</div>
+
+<!--IMG BOX-->
+<div class="row mt-3">
+
+    <div id="img_box_<%= imgAnnotated.imgName%>" class="col-6">
+        <img onload="fixHeights('<%= imgAnnotated.imgName%>')" id="img_<%= imgAnnotated.imgName%>" class="w-100 h-auto ml-auto mr-auto" src="<%= imgAnnotated.imgUrl%>">
+        <div class="faceBoundingBox" id="face_box_<%= imgAnnotated.imgName%>"></div>
+    </div>
+
+
+    <div id="img_ann_box_<%= imgAnnotated.imgName%>" class="col-6 alert-info" style="display:none;overflow: scroll">
+
+        <div id="FaceDetRec_<%= imgAnnotated.imgName%>">
+            <%- include('faceDetRec', imgAnnotated)%>
+        </div>
+
+        <div id="Faces_<%= imgAnnotated.imgName%>" style="display: none">
+            <%- include('faces', imgAnnotated)%>
+        </div>
+
+        <div id="Description_<%= imgAnnotated.imgName%>" style="display: none">
+            <%- include('description', imgAnnotated)%>
+        </div>
+
+        <div id="Tags_<%= imgAnnotated.imgName%>" style="display: none">
+            <%- include('tags', imgAnnotated)%>
+        </div>
+
+        <div id="Objects_<%= imgAnnotated.imgName%>" style="display: none">
+            <%- include('objects', imgAnnotated)%>
+        </div>
+
+        <div id="Text_<%= imgAnnotated.imgName%>" style="display: none">
+            <%- include('text', imgAnnotated)%>
+        </div>
+
+        <div id="Landmarks_<%= imgAnnotated.imgName%>" style="display: none">
+            <%- include('landmarks', imgAnnotated)%>
+        </div>
+
+        <div id="SafetyAnn_<%= imgAnnotated.imgName%>" style="display: none">
+            <%- include('safetyAnn', imgAnnotated)%>
+        </div>
+
+        <div id="Colors_<%= imgAnnotated.imgName%>" style="display: none">
+            <%- include('colors', imgAnnotated)%>
+        </div>
+
+    </div>
+</div>

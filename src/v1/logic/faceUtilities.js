@@ -14,10 +14,10 @@
 * */
 function azureFaceVertex(azureFaceRect){
     let bl =    {   'x':    azureFaceRect['left'],
-                    'y':    ((azureFaceRect['top'] - azureFaceRect['height']) > 0)? (azureFaceRect['top'] - azureFaceRect['height']) : 0
+                    'y':    azureFaceRect['top'] + azureFaceRect['height']
                 };
     let br =    {   'x':    azureFaceRect['left'] + azureFaceRect['width'],
-                    'y':    ((azureFaceRect['top'] - azureFaceRect['height']) > 0)? (azureFaceRect['top'] - azureFaceRect['height']) : 0
+                    'y':    azureFaceRect['top'] + azureFaceRect['height']
                 };
     let tl =    {   'x':    azureFaceRect['left'],
                     'y':    azureFaceRect['top']
@@ -43,8 +43,8 @@ function gFaceVertex(gcloudFace){
     for(let point of gcloudFace['vertices']){
         x1 = Math.min(x1, point['x']);
         x2 = Math.max(x2, point['x']);
-        y1 = Math.min(y1, point['y']);
-        y2 = Math.max(y2, point['y']);
+        y1 = Math.max(y1, point['y']);
+        y2 = Math.min(y2, point['y']);
     }
 
     let bl =    {   'x':    x1,
@@ -59,7 +59,7 @@ function gFaceVertex(gcloudFace){
     let tr =    {   'x':    x2,
                     'y':    y2
     };
-    return {'bl': bl, 'br': br, 'tr': tr, 'tl': tl, 'height': (tl['y']-bl['y']), 'width': (br['x']-bl['x'])};
+    return {'bl': bl, 'br': br, 'tr': tr, 'tl': tl, 'height': (bl['y']-tl['y']), 'width': (br['x']-bl['x'])};
 }
 
 /*  given google face & azure face rectangles unified with the metrics
@@ -71,7 +71,7 @@ function faceOverlap(gFaceRect, aFaceRect){
     if(gFaceRect['br']['x'] < aFaceRect['bl']['x'] || gFaceRect['bl']['x'] > aFaceRect['br']['x'])//considering x
         return 0;
 
-    else if(gFaceRect['bl']['y'] > aFaceRect['tl']['y'] || gFaceRect['tl']['y'] < aFaceRect['bl']['y'])//considering y
+    else if(gFaceRect['bl']['y'] < aFaceRect['tl']['y'] || gFaceRect['tl']['y'] > aFaceRect['bl']['y'])//considering y
         return 0;
 
     else{ //there is an overlap
@@ -140,7 +140,7 @@ function matchFaces(gcloudFaces, azureFaces, aCelebrities){
 
     //for every face in GCloud put the bounding rectangle in 4 vertex (bl, br, tl, tr)
     for(let gFace of gcloudFaces){
-        gFace['cogniFaceRect'] = gFaceVertex(gFace['boundingPoly']);
+        gFace['cogniFaceRect'] = gFaceVertex(gFace['fdBoundingPoly']);
     }
 
 
@@ -149,11 +149,13 @@ function matchFaces(gcloudFaces, azureFaces, aCelebrities){
         let matchId = null; //put here the azure face id value to apply to google
         let matchFace = null; //put here the azure face value which match the google one
         let maxOverlap = 0; //overlap has to be between 0-100 as a percentage value
+        //console.log('\n\nOVERLAP\nConsidering gface with tl = ' + JSON.stringify(gFace['cogniFaceRect']['tl']) + ' and br = ' + JSON.stringify(gFace['cogniFaceRect']['br']));
         for(let aFace of azureFaces){
 
             if(!azFaceMatched[aFace['faceId']]){ //azure face ids is not already taken
                 let overLap = faceOverlap(gFace['cogniFaceRect'], aFace['cogniFaceRect']);
                 if(overLap > maxOverlap){
+                    //console.log('New overlap for ' + aFace['faceId'] + ' equals to ' + overLap);
                     maxOverlap = overLap;
                     matchId = aFace['faceId'];
                     matchFace = aFace;
@@ -162,6 +164,7 @@ function matchFaces(gcloudFaces, azureFaces, aCelebrities){
 
         }
         azFaceMatched[matchId] = true;
+        //console.log('Overlap for ' + matchId + ' equals to ' + maxOverlap);
         gFace['azureId'] = matchId;
         gFace['azureData'] = matchFace;
     }

@@ -1,0 +1,172 @@
+<h3 class="text-center">Safety Annotations</h3>
+
+
+
+<% safety = imgAnnotated.cogniAPI.safetyAnnotation;%>
+
+<%  function convertConfidenceLikelihood(likelihood){
+        if(likelihood == 'UNKNOWN')
+            return 0;
+        else if(likelihood == 'VERY_UNLIKELY')
+            return 1;
+        else if(likelihood == 'UNLIKELY')
+            return 2;
+        else if(likelihood == 'POSSIBLE')
+            return 3;
+        else if(likelihood == 'LIKELY')
+            return 4;
+        else if(likelihood == 'VERY_LIKELY')
+            return 5;
+    }
+
+ %>
+
+<div class="mt-3">
+    <% if(safety.adult != undefined) { %>
+        <h5 class="text-danger font-italic">Adult Content
+            <% if(safety.adult.present){%>
+                <i class="fas fa-exclamation-triangle text-danger"></i>
+            <% }else{ %>
+                <i class="far fa-thumbs-up text-dark"></i>
+            <% }%>
+        </h5>
+
+        <p class="mt-1">
+            Likelihood:
+            <span class="ml-1">
+                <% i= 0%>
+                <% while(i<convertConfidenceLikelihood(safety.adult.confidenceLikelihood)){%>
+                    <span class="bg-warning squareLikelihood text-warning"> ___  </span>
+                    <% i++;%>
+                <% }%>
+
+                <% while(i<5){%>
+                    <span class="bg-light squareLikelihood text-light"> ___ </span>
+                    <% i++;%>
+                <% }%>
+            </span>
+            <span class="ml-2"> <%= safety.adult.confidenceLikelihood%> </span>
+        </p>
+
+        <p class="mt-1">
+            Confidence:
+            <div class="progress">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: <%= Math.floor(safety.adult.confidence*100)%>%>%;"
+                     aria-valuenow="<%= Math.floor(safety.adult.confidence*100)%>" aria-valuemin="0" aria-valuemax="100">
+                    <%= Math.floor(safety.adult.confidence*100)%>%
+                </div>
+            </div>
+        </p>
+
+    <% }%>
+</div>
+<hr />
+
+<div class="mt-3">
+    <% if(safety.racy != undefined) { %>
+        <h5 class="text-danger font-italic">Racy Content
+            <% if(safety.racy.present){%>
+                <i class="fas fa-exclamation-triangle text-danger"></i>
+            <% }else{ %>
+                <i class="far fa-thumbs-up text-dark"></i>
+            <% }%>
+        </h5>
+        <p class="mt-1">
+            Likelihood:
+            <span class="ml-1">
+                <% i= 0%>
+                <% while(i<convertConfidenceLikelihood(safety.racy.confidenceLikelihood)){%>
+                    <span class="bg-warning squareLikelihood text-warning"> ___  </span>
+                    <% i++;%>
+                <% }%>
+
+                <% while(i<5){%>
+                    <span class="bg-light squareLikelihood text-light"> ___ </span>
+                    <% i++;%>
+                <% }%>
+            </span>
+            <span class="ml-2"> <%= safety.racy.confidenceLikelihood%> </span>
+        </p>
+
+        <p class="mt-1">
+            Confidence:
+            <div class="progress">
+                <div class="progress-bar bg-primary" role="progressbar" style="width: <%= Math.floor(safety.racy.confidence*100)%>%>%;"
+                     aria-valuenow="<%= Math.floor(safety.racy.confidence*100)%>" aria-valuemin="0" aria-valuemax="100">
+                    <%= Math.floor(safety.racy.confidence*100)%>%
+                </div>
+            </div>
+        </p>
+    <% }%>
+</div>
+<hr />
+
+<div class="mt-3">
+    <% if(safety.violence != undefined) { %>
+        <h5 class="text-danger font-italic">Violence Content</h5>
+        <p class="mt-1">
+            Likelihood:
+            <span class="ml-1">
+                <% i= 0%>
+                <% while(i<convertConfidenceLikelihood(safety.violence.confidenceLikelihood)){%>
+                    <span class="bg-warning squareLikelihood text-warning"> ___  </span>
+                    <% i++;%>
+                <% }%>
+
+                <% while(i<5){%>
+                    <span class="bg-light squareLikelihood text-light"> ___ </span>
+                    <% i++;%>
+                <% }%>
+            </span>
+            <span class="ml-2"> <%= safety.violence.confidenceLikelihood%> </span>
+        </p>
+    <% }%>
+</div>
+<hr />
+
+
+<div class="mt-3">
+    <% if(safety.spoof != undefined) { %>
+        <h5 class="text-danger font-italic">Spoof Content</h5>
+        <p class="mt-1">
+            Likelihood:
+            <span class="ml-1">
+                <% i= 0%>
+                <% while(i<convertConfidenceLikelihood(safety.spoof.confidenceLikelihood)){%>
+                    <span class="bg-warning squareLikelihood text-warning"> ___  </span>
+                    <% i++;%>
+                <% }%>
+
+                <% while(i<5){%>
+                    <span class="bg-light squareLikelihood text-light"> ___ </span>
+                    <% i++;%>
+                <% }%>
+            </span>
+            <span class="ml-2"> <%= safety.spoof.confidenceLikelihood%> </span>
+        </p>
+    <% }%>
+</div>
+<hr />
+
+<div class="mt-3">
+    <% if(safety.medical != undefined) { %>
+        <h5 class="text-danger font-italic">Medical Content</h5>
+        <p class="mt-1">
+            Likelihood:
+            <span class="ml-1">
+                <% i= 0%>
+                <% while(i<convertConfidenceLikelihood(safety.medical.confidenceLikelihood)){%>
+                    <span class="bg-warning squareLikelihood text-warning"> ___  </span>
+                    <% i++;%>
+                <% }%>
+
+                <% while(i<5){%>
+                    <span class="bg-light squareLikelihood text-light"> ___ </span>
+                    <% i++;%>
+                <% }%>
+            </span>
+            <span class="ml-2"> <%= safety.medical.confidenceLikelihood%> </span>
+        </p>
+    <% }%>
+</div>
+<hr />

@@ -274,7 +274,7 @@ function buildObjectsObj(gCloudV, azureCV, minScore = 0.0){
     if(azureCV){
         let azureObjects = azureCV['objects'];
         //apply standard bounding box to all the detected objects
-        azureCVVObjsToCogniBoundingBox(azureObjects, azureCV['metadata']['width']);
+        azureCVObjsToCogniBoundingBox(azureObjects, azureCV['metadata']['width'], azureCV['metadata']['height']);
         for(let aObj of azureObjects){
             if(aObj['confidence'] > minScore) { //filter out unwanted tags
                 objects.push({
@@ -332,13 +332,13 @@ function buildTextsObj(gCloudV, azureCV, minScore = 0.0){
 }
 
 /*  Add boundingBox property to azure computer vision objects with the standard cogni bounding box schema*/
-function azureCVVObjsToCogniBoundingBox(azureCVObjects, width){
+function azureCVObjsToCogniBoundingBox(azureCVObjects, width, height){
     for(let aObj of azureCVObjects){
         let bl =    {   'x':    aObj['rectangle']['x'],
-                        'y':    (aObj['rectangle']['y']-aObj['rectangle']['h'] > 0)? aObj['rectangle']['y']-aObj['rectangle']['h']:0
+                        'y':    (aObj['rectangle']['y']+aObj['rectangle']['h'] > height)? aObj['rectangle']['y']+aObj['rectangle']['h']:height
         };
-        let br =    {   'x':    (aObj['rectangle']['x']+aObj['rectangle']['w']<width)? aObj['rectangle']['x']+aObj['rectangle']['w']:width,
-                        'y':    (aObj['rectangle']['y']-aObj['rectangle']['h'] > 0)? aObj['rectangle']['y']-aObj['rectangle']['h']:0
+        let br =    {   'x':    (aObj['rectangle']['x']+aObj['rectangle']['w'] < width)? aObj['rectangle']['x']+aObj['rectangle']['w']:width,
+                        'y':    (aObj['rectangle']['y']+aObj['rectangle']['h'] > height)? aObj['rectangle']['y']+aObj['rectangle']['h']:height
         };
         let tl =    {   'x':    aObj['rectangle']['x'],
                         'y':    aObj['rectangle']['y'],
@@ -348,7 +348,7 @@ function azureCVVObjsToCogniBoundingBox(azureCVObjects, width){
         };
         aObj['boundingBox'] = {
             'bl': bl, 'br': br, 'tr': tr, 'tl': tl,
-            'height': +(tl['y']-bl['y']).toFixed(1), 'width': +(br['x']-bl['x']).toFixed(1)
+            'height': +(bl['y']-tl['y']).toFixed(1), 'width': +(br['x']-bl['x']).toFixed(1)
         };
     }
 }
@@ -375,8 +375,8 @@ function gCloudVObjsToCogniBoundingBox(gCloudObjects, width, height){
         for(let point of vertices){
             x1 = Math.min(x1, point['x']);
             x2 = Math.max(x2, point['x']);
-            y1 = Math.min(y1, point['y']);
-            y2 = Math.max(y2, point['y']);
+            y1 = Math.max(y1, point['y']);
+            y2 = Math.min(y2, point['y']);
         }
 
         let bl =    {   'x':    (normalized)? +(x1 * width).toFixed(1):x1,
@@ -393,7 +393,7 @@ function gCloudVObjsToCogniBoundingBox(gCloudObjects, width, height){
         };
         gCloudObj['boundingBox'] = {
             'bl': bl, 'br': br, 'tr': tr, 'tl': tl,
-            'height': +(tl['y']-bl['y']).toFixed(1), 'width': +(br['x']-bl['x']).toFixed(1)
+            'height': +(bl['y']-tl['y']).toFixed(1), 'width': +(br['x']-bl['x']).toFixed(1)
         };
     }
 }

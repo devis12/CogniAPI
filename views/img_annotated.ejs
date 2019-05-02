@@ -26,6 +26,7 @@
 </style>
 
 <script src="/js/renderjson.js"></script>
+
 <script>
     let vettImgNames = [];
 
@@ -48,102 +49,14 @@
 <%  for(imgAnnotated of imgAnnotations){%>
     <div class="mt-4 mb-4">
 
-        <!--IMG BOX-->
-        <div class="row">
-
-            <div id="img_box_<%= imgAnnotated.imgName%>" class="col-6">
-                <img onload="fixHeights('<%= imgAnnotated.imgName%>')" id="img_<%= imgAnnotated.imgName%>" class="w-100 h-auto ml-auto mr-auto" src="<%= imgAnnotated.imgUrl%>">
-                <div class="faceBoundingBox" id="face_box_<%= imgAnnotated.imgName%>"></div>
-            </div>
-
-
-            <div id="img_ann_box_<%= imgAnnotated.imgName%>" class="col-6 alert-info" style="display:none;overflow: scroll">
-                <%# The following script will put a box for every azure face detected, if the user wants to relate some
-                user data (possibly a name+surname) she/he'll perform it bu clicking Recognize  %>
-                <%  if(user != null){
-                        for(face of imgAnnotated.cogniAPI.faces){
-                %>
-                    <div class="row alert-warning p-3 mt-2 mb-3 mr-5 ml-5"
-                         onmouseover="boundFace(
-                                 'face_box_<%= imgAnnotated.imgName%>', 1, '<%= imgAnnotated.cogniAPI.metadata.width%>', '<%= imgAnnotated.cogniAPI.metadata.height%>',
-                                 '<%=face.faceRectangle.tl.y%>', '<%=face.faceRectangle.tl.x%>',
-                                 '<%=face.faceRectangle.width%>', '<%=face.faceRectangle.height%>',
-                                 )"
-                         onmouseleave="eraseFaceBound('face_box_<%= imgAnnotated.imgName%>')"
-                    >
-                        <p class="mt-4">
-                            <h5>FACE_ID "<%=face.faceId%>"</h5>
-
-                            <% if(face.similarFaces != undefined) { %>
-
-                                <% for(similarFace of face.similarFaces){ %>
-
-                                    <br />
-                                    <span class="font-italic mt-1">
-                                        It has been recognized as <span class="font-weight-bold"> <%=similarFace['userData']%> </span> (persisted_id: "<%=similarFace['persistedFaceId']%>") with a <span class="text-success font-weight-bold">confidence</span> value
-                                        of <span class="text-success font-weight-bold"><%= similarFace['confidence']%></span>
-                                    </span>
-
-                                    In future image submissions recognize <%= similarFace['persistedFaceId']%> as ... <br />
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" placeholder="Name" id="name_<%= similarFace['persistedFaceId']%>">
-                                        <button onclick="patchFaceGroup('<%= similarFace['persistedFaceId']%>',
-                                                document.getElementById('name_<%= similarFace['persistedFaceId']%>').value,
-                                                '<%= user%>')">
-                                            Update
-                                        </button>
-                                    </div>
-
-                                <% } %>
-
-                            <% } %>
-                        </p>
-
-                        <% if(face.similarFaces != undefined) { %>
-
-                            <% if(imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){%>
-                                <p class="text-danger mt-2">
-                                    Did I recognize it wrong?
-                                <div class="input-group">
-                                    <input type="text" class="form-control" placeholder="Name" id="name_<%= face.faceId%>">
-                                    <input type="hidden" id="target_<%= face.faceId%>"
-                                           value="<%= face.faceRectangle.tl.x%>,<%= face.faceRectangle.tl.y%>,<%= face.faceRectangle.width%>,<%= face.faceRectangle.height%>">
-                                    <button onclick="addToFaceGroup('<%= imgAnnotated.imgUrl%>',
-                                            document.getElementById('target_<%= face.faceId%>').value,
-                                            document.getElementById('name_<%= face.faceId%>').value,
-                                            '<%= user%>')">
-                                        Recognize
-                                    </button>
-                                </div>
-                                </p>
-
-                            <% }%>
-
-                        <% }else if(imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){ %>
-                            <div class="input-group">
-                                <input type="text" class="form-control" placeholder="Name" id="name_<%= face.faceId%>">
-                                <input type="hidden" id="target_<%= face.faceId%>"
-                                       value="<%= face.faceRectangle.tl.x%>,<%= face.faceRectangle.tl.y%>,<%= face.faceRectangle.width%>,<%= face.faceRectangle.height%>">
-                                <button onclick="addToFaceGroup('<%= imgAnnotated.imgUrl%>',
-                                        document.getElementById('target_<%= face.faceId%>').value,
-                                        document.getElementById('name_<%= face.faceId%>').value,
-                                        '<%= user%>')">
-                                    Recognize
-                                </button>
-                            </div>
-
-                        <% } %>
-
-                    </div>
-                <%
-                    }
-                }
-                %>
-            </div>
-        </div>
+        <%- include('img_widget', imgAnnotated);%>
 
         <!--Azure Computer Vision & Google Cloud Vision Results BOX-->
-        <div class="row mr-5 ml-5 mt-2">
+        <div class="mt-2 text-center">
+            <h3 class="font-weight-bold">JSON Explorer</h3>
+            <h6>returned by the different cognitive services</h6>
+        </div>
+        <div class="row mr-5 ml-5">
 
             <!--Box Azure Computer Vision & Azure Face-->
             <div class="col-6 alert-primary">

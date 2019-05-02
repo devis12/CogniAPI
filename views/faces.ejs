@@ -1,0 +1,90 @@
+<%  function convertConfidenceLikelihood(likelihood){
+        if(likelihood == 'UNKNOWN')
+            return 0;
+        else if(likelihood == 'VERY_UNLIKELY')
+            return 1;
+        else if(likelihood == 'UNLIKELY')
+            return 2;
+        else if(likelihood == 'POSSIBLE')
+            return 3;
+        else if(likelihood == 'LIKELY')
+            return 4;
+        else if(likelihood == 'VERY_LIKELY')
+            return 5;
+    }
+
+%>
+
+<h3 class="text-center">Faces analysis</h3>
+<%# The following script will put a box for every azure face detected, if the user wants to relate some
+user data (possibly a name+surname) she/he'll perform it bu clicking Recognize  %>
+<%  if(user != null){
+        for(face of imgAnnotated.cogniAPI.faces){
+%>
+    <div class="alert-warning p-3 mt-2 mb-3 mr-5 ml-5"
+         onmouseover="boundFace(
+                 'face_box_<%= imgAnnotated.imgName%>', 1, '<%= imgAnnotated.cogniAPI.metadata.width%>', '<%= imgAnnotated.cogniAPI.metadata.height%>',
+                 '<%=face.faceRectangle.tl.y%>', '<%=face.faceRectangle.tl.x%>',
+                 '<%=face.faceRectangle.width%>', '<%=face.faceRectangle.height%>',
+                 )"
+         onmouseleave="eraseFaceBound('face_box_<%= imgAnnotated.imgName%>')"
+    >
+        <h5 class="mt-1">FACE_ID "<%=face.faceId%>"</h5>
+        <p>
+            <span class="text-danger font-weight-bold">Gender:</span> <%= face.gender%> <br />
+            <span class="text-danger font-weight-bold">Age:</span> <%= face.age%> <br />
+            <span class="text-danger font-weight-bold">Glasses:</span> <%= face.glasses%> <br />
+            <span class="text-danger font-weight-bold">Smile:</span> <meter value="<%= face.smile%>"></meter> <%= Math.floor(face.smile*100)%>% <br />
+        </p>
+
+        <% if(face.celebrity != undefined){ %>
+            <p>
+                <span class="text-danger font-weight-bold">Celebrity:</span> <%= face.celebrity.name%>
+                <meter value="<%= face.celebrity.confidence%>"></meter>
+                <span class="ml-1"><%= Math.floor(face.celebrity.confidence*100)%>%</span>
+            </p>
+        <% } %>
+
+        <p>
+            <span class="text-danger font-weight-bold">Emotions</span>
+
+            <% for(emotion in face.emotions){ %>
+                <div class="row confidenceEmotion">
+                    <span class="text-info font-italic col-3"><%= emotion%></span>
+
+                    <meter class="col-4" value="<%= face.emotions[emotion]['confidence']%>"></meter>
+                    <span class="col-2"><%= Math.floor(face.emotions[emotion]['confidence']*100)%>%</span>
+
+                </div>
+
+                <div class="row confidenceLabelEmotion">
+                    <% if(face.emotions[emotion]['confidenceLabel'] != undefined){%>
+                        <span class="text-info font-italic col-3"></span>
+                        <div class="col-4">
+                            <% i= 0%>
+
+                            <% while(i<convertConfidenceLikelihood(face.emotions[emotion]['confidenceLabel'])){%>
+                                <span class="bg-warning squareLikelihood text-warning"> ___  </span>
+                                <% i++;%>
+                            <% }%>
+
+                            <% while(i<5){%>
+                                <span class="bg-light squareLikelihood text-light"> ___ </span>
+                                <% i++;%>
+                            <% }%>
+                        </div>
+                        <span class="col-2">
+                            <%= face.emotions[emotion]['confidenceLabel']%>
+                        </span>
+
+                    <% } %>
+                </div>
+
+            <% }%>
+        </p>
+
+    </div>
+<%
+        }
+    }
+%>

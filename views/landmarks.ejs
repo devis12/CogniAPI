@@ -1,0 +1,33 @@
+<h3 class="text-center">Landmarks</h3>
+
+<% for(landmark of imgAnnotated.cogniAPI.landmarks){ %>
+    <% if(landmark.boundingBox != undefined) { %>
+        <div    class="mt-3 mb-3"
+            onmouseover="boundFace(
+                    'face_box_<%= imgAnnotated.imgName%>', 1, '<%= imgAnnotated.cogniAPI.metadata.width%>', '<%= imgAnnotated.cogniAPI.metadata.height%>',
+                    '<%=landmark.boundingBox.tl.y%>', '<%=landmark.boundingBox.tl.x%>',
+                    '<%=landmark.boundingBox.width%>', '<%=landmark.boundingBox.height%>',
+                    )"
+            onmouseleave="eraseFaceBound('face_box_<%= imgAnnotated.imgName%>')">
+    <%} else { %>
+        <div class="mt-3 mb-3">
+    <%} %>
+
+            <%=landmark.name%>
+            <br />
+            <% if(landmark.latitude != undefined && landmark.longitude != undefined) { %>
+                 <p>
+                     latitude: <%= landmark.latitude%>
+                     <br />
+                     longitude: <%= landmark.longitude%>
+                 </p>
+            <% }%>
+            <div class="progress">
+                <div class="progress-bar bg-info" role="progressbar" style="width: <%= Math.floor(landmark.confidence*100)%>%>%;"
+                     aria-valuenow="<%= Math.floor(landmark.confidence*100)%>" aria-valuemin="0" aria-valuemax="100">
+                    <%= Math.floor(landmark.confidence*100)%>%
+                </div>
+            </div>
+
+        </div>
+<% }%>
