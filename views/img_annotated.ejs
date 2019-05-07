@@ -46,10 +46,13 @@
     };
 </script>
 
+<% let annCounter = 0;%>
+
 <%  for(imgAnnotated of imgAnnotations){%>
+    <% annCounter++;%>
     <div class="mt-4 mb-4">
 
-        <%- include('img_widget', imgAnnotated);%>
+        <%- include('img_widget', {imgAnnotated, annCounter});%>
 
         <!--Azure Computer Vision & Google Cloud Vision Results BOX-->
         <div class="mt-2 text-center">

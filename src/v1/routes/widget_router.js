@@ -135,7 +135,7 @@ router.post('/uploadAsync/images', (req, res) => {
             }
         }
         let username = (req.body.username ==  undefined || req.body.username ==  '')? null : req.body.username;
-        cogniCombine.asyncImagesAnn(username, imgUrls) //no caching because this is the first analysis after upload
+        cogniCombine.asyncImagesAnn(username, imgUrls, false) //no caching because this is the first analysis after upload
             .then(data => {
                 res.render('index',
                     {

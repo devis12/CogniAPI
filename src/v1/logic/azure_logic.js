@@ -81,7 +81,7 @@ function analyseRemoteImageCogniSchema(imageUrl, loggedUser, minScore){
             let azureCV = azureAnn[0];
             let azureF = azureAnn[1];
 
-            let cogniAPI = reconciliateSchemaAzure(azureCV, azureF, minScore);
+            let cogniAPI = reconciliateSchemaAzure(imageUrl, azureCV, azureF, minScore);
 
             if(loggedUser){
                 //add tag in case you find a similar faces, already registered by the logged user
@@ -99,9 +99,10 @@ function analyseRemoteImageCogniSchema(imageUrl, loggedUser, minScore){
 
 /*  This function will reconcile the schema in a unique and standard one
 * */
-function reconciliateSchemaAzure(azureCV, azureFaces, minScore){
+function reconciliateSchemaAzure(imageUrl, azureCV, azureFaces, minScore){
     let cogniAPI = {};//add field for cogniAPI data
 
+    cogniAPI['imageUrl'] = imageUrl;
     cogniAPI['description'] = descriptionUtilities.buildDescriptionObj(null, azureCV);
     cogniAPI['tags'] = descriptionUtilities.buildTagsObj(null, azureCV, minScore);
     cogniAPI['objects'] = descriptionUtilities.buildObjectsObj(null, azureCV, minScore);

@@ -30,12 +30,14 @@ user data (possibly a name+surname) she/he'll perform it bu clicking Recognize  
          onmouseleave="eraseFaceBound('face_box_<%= imgAnnotated.imgName%>')"
     >
         <h5 class="mt-1">FACE_ID "<%=face.faceId%>"</h5>
-        <p>
-            <span class="text-danger font-weight-bold">Gender:</span> <%= face.gender%> <br />
-            <span class="text-danger font-weight-bold">Age:</span> <%= face.age%> <br />
-            <span class="text-danger font-weight-bold">Glasses:</span> <%= face.glasses%> <br />
-            <span class="text-danger font-weight-bold">Smile:</span> <meter value="<%= face.smile%>"></meter> <%= Math.floor(face.smile*100)%>% <br />
-        </p>
+        <% if(face.gender != undefined && face.age != undefined && face.glasses != undefined && face.smile != undefined){ %>
+            <p>
+                <span class="text-danger font-weight-bold">Gender:</span> <%= face.gender%> <br />
+                <span class="text-danger font-weight-bold">Age:</span> <%= face.age%> <br />
+                <span class="text-danger font-weight-bold">Glasses:</span> <%= face.glasses%> <br />
+                <span class="text-danger font-weight-bold">Smile:</span> <meter value="<%= face.smile%>"></meter> <%= Math.floor(face.smile*100)%>% <br />
+            </p>
+        <% }%>
 
         <% if(face.celebrity != undefined){ %>
             <p>
@@ -49,17 +51,23 @@ user data (possibly a name+surname) she/he'll perform it bu clicking Recognize  
             <span class="text-danger font-weight-bold">Emotions</span>
 
             <% for(emotion in face.emotions){ %>
-                <div class="row confidenceEmotion">
-                    <span class="text-info font-italic col-3"><%= emotion%></span>
+                <% if(face.emotions[emotion]['confidence'] != undefined){ %>
+                    <div class="row confidenceEmotion">
+                        <span class="text-info font-italic col-3"><%= emotion%></span>
 
-                    <meter class="col-4" value="<%= face.emotions[emotion]['confidence']%>"></meter>
-                    <span class="col-2"><%= Math.floor(face.emotions[emotion]['confidence']*100)%>%</span>
+                        <meter class="col-4" value="<%= face.emotions[emotion]['confidence']%>"></meter>
+                        <span class="col-2"><%= Math.floor(face.emotions[emotion]['confidence']*100)%>%</span>
 
-                </div>
+                    </div>
+                <% } %>
 
                 <div class="row confidenceLabelEmotion">
                     <% if(face.emotions[emotion]['confidenceLabel'] != undefined){%>
-                        <span class="text-info font-italic col-3"></span>
+                        <span class="text-info font-italic col-3">
+                            <% if(face.emotions[emotion]['confidence'] == undefined){ %>
+                                <%= emotion%>
+                            <% }%>
+                        </span>
                         <div class="col-4">
                             <% i= 0%>
 

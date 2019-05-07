@@ -87,9 +87,9 @@ function analyseRemoteImageCogniSchema(imageUrl, minScore){
                     imgAnn['metadata'] = {};
                     imgAnn['metadata']['width'] = size['width'];
                     imgAnn['metadata']['height'] = size['height'];
-                    imgAnn['metadata']['format'] = size['format'];
+                    imgAnn['metadata']['format'] = size['type'];
 
-                    resolve (reconciliateSchemaGCloud(imgAnn, minScore));
+                    resolve (reconciliateSchemaGCloud(imageUrl, imgAnn, minScore));
                 })
                 .catch(err => console.error(err));
 
@@ -100,15 +100,16 @@ function analyseRemoteImageCogniSchema(imageUrl, minScore){
 
 /*  This function will reconcile the schema in a unique and standard one
 * */
-function reconciliateSchemaGCloud(gCloudVision, minScore){
+function reconciliateSchemaGCloud(imageUrl, gCloudVision, minScore){
     let cogniAPI = {};//add field for cogniAPI data
 
-
+    cogniAPI['imageUrl'] = imageUrl;
     cogniAPI['description'] = descriptionUtilities.buildDescriptionObj(gCloudVision);
     cogniAPI['tags'] = descriptionUtilities.buildTagsObj(gCloudVision, null, minScore);
     cogniAPI['objects'] = descriptionUtilities.buildObjectsObj(gCloudVision, null, minScore);
     cogniAPI['landmarks'] = descriptionUtilities.buildLandmarksObj(gCloudVision);
     cogniAPI['texts'] = descriptionUtilities.buildTextsObj(gCloudVision);
+    cogniAPI['webDetection'] = descriptionUtilities.buildWebDetectionObj(gCloudVision);
 
     cogniAPI['faces'] = faceUtilities.buildFacesObj(gCloudVision['faceAnnotations']);
 

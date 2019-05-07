@@ -101,15 +101,45 @@ function toggleCacheAnnBtn(checked){
 
 /*  Set to display none all the paper tabs related to an img*/
 function displayNoneAllPaperTabs(imgName){
-    document.getElementById('FaceDetRec_'+imgName).style.display = 'none';
-    document.getElementById('Faces_'+imgName).style.display = 'none';
-    document.getElementById('Description_'+imgName).style.display = 'none';
-    document.getElementById('Tags_'+imgName).style.display = 'none';
-    document.getElementById('Objects_'+imgName).style.display = 'none';
-    document.getElementById('Text_'+imgName).style.display = 'none';
-    document.getElementById('Landmarks_'+imgName).style.display = 'none';
-    document.getElementById('SafetyAnn_'+imgName).style.display = 'none';
-    document.getElementById('Colors_'+imgName).style.display = 'none';
+    let faceDetRecTab = document.getElementById('FaceDetRec_'+imgName);
+    if(faceDetRecTab)
+        faceDetRecTab.style.display = 'none';
+
+    let facesTab = document.getElementById('Faces_'+imgName);
+    if(facesTab)
+        facesTab.style.display = 'none';
+
+    let descrTab = document.getElementById('Description_'+imgName);
+    if(descrTab)
+        descrTab.style.display = 'none';
+
+    let tagsTab = document.getElementById('Tags_'+imgName);
+    if(tagsTab)
+        tagsTab.style.display = 'none';
+
+    let objectsTab = document.getElementById('Objects_'+imgName);
+    if(objectsTab)
+        objectsTab.style.display = 'none';
+
+    let textsTab = document.getElementById('Text_'+imgName);
+    if(textsTab)
+        textsTab.style.display = 'none';
+
+    let landmarksTab = document.getElementById('Landmarks_'+imgName);
+    if(landmarksTab)
+        landmarksTab.style.display = 'none';
+
+    let safetyTab = document.getElementById('SafetyAnn_'+imgName);
+    if(safetyTab)
+        safetyTab.style.display = 'none';
+
+    let colorsTab = document.getElementById('Colors_'+imgName);
+    if(colorsTab)
+        colorsTab.style.display = 'none';
+
+    let webTab = document.getElementById('Web_'+imgName);
+    if(webTab)
+        webTab.style.display = 'none';
 
     document.getElementById('img_ann_box_'+imgName).classList.remove('alert-info');
     document.getElementById('img_ann_box_'+imgName).classList.remove('alert-warning');
@@ -118,14 +148,15 @@ function displayNoneAllPaperTabs(imgName){
 }
 
 /*  Decide what paper tab of the img widget to display*/
-function changePaperTab(paperTab, imgName){
+function changePaperTab(clickedTab, paperTab, imgName){
     displayNoneAllPaperTabs(imgName);
+    changeTab(clickedTab,document.getElementById('selector_'+imgName), imgName);
 
     if(paperTab == 'FaceDetRec_' || paperTab == 'Faces_' || paperTab == 'Description_')
         document.getElementById('img_ann_box_'+imgName).classList.add('alert-info');
     else if(paperTab == 'Tags_' || paperTab == 'Objects_' || paperTab == 'SafetyAnn_' || paperTab == 'Colors_')
         document.getElementById('img_ann_box_'+imgName).classList.add('alert-success');
-    else if(paperTab == 'Text_' || paperTab == 'Landmarks_')
+    else if(paperTab == 'Text_' || paperTab == 'Landmarks_' || paperTab == 'Web_')
         document.getElementById('img_ann_box_'+imgName).classList.add('alert-warning');
 
     document.getElementById(paperTab + imgName).style.display = 'inline';
@@ -141,14 +172,17 @@ $(".selector").css({
     "width": activeWidth + "px"
 });
 
-$(".tabs").on("click","a",function(e){
-    e.preventDefault();
-    $('.tabs a').removeClass("active");
-    $(this).addClass('active');
-    var activeWidth = $(this).innerWidth();
-    var itemPos = $(this).position();
-    $(".selector").css({
+function changeTab(clickedTab, selector, imgName){
+    let tabsA = $('.tabs a');
+    for(let tab of tabsA){
+        if($(tab).attr("id").indexOf(imgName) != -1)//deleting active class on all tabs a of the same img widget
+            $(tab).removeClass("active");
+    }
+    $(clickedTab).addClass('active');
+    var activeWidth = $(clickedTab).innerWidth();
+    var itemPos = $(clickedTab).position();
+    $(selector).css({
         "left":itemPos.left + "px",
         "width": activeWidth + "px"
-    });
-});
+    })
+}

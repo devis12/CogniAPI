@@ -82,21 +82,30 @@ function gcloudFilterTags(gcloudJson, minScore){
     retObj['landmarks'] = [];
     for(let landMarkAnn of gcloudJson['landmarkAnnotations']){
         if(Number.parseFloat(landMarkAnn['score']) > minScore)
-            retObj['landmarks'].push({'name': landMarkAnn['description'], 'confidence': Number.parseFloat(landMarkAnn['score'])});
+            retObj['landmarks'].push({
+                'name': landMarkAnn['description'],
+                'mid': (landMarkAnn['mid'] &&  landMarkAnn['mid']!= '')? landMarkAnn['mid']: undefined,
+                'confidence': Number.parseFloat(landMarkAnn['score'])});
     }
 
     //logo annotations
     retObj['logos'] = [];
     for(let logoAnn of gcloudJson['logoAnnotations']){
         if(Number.parseFloat(logoAnn['score']) > minScore)
-            retObj['logos'].push({'name': logoAnn['description'], 'confidence': Number.parseFloat(logoAnn['score'])});
+            retObj['logos'].push({
+                'name': logoAnn['description'],
+                'mid': (logoAnn['mid'] &&  logoAnn['mid']!= '')? logoAnn['mid']: undefined,
+                'confidence': Number.parseFloat(logoAnn['score'])});
     }
 
     //logo annotations
     retObj['tags'] = [];
     for(let labelAnn of gcloudJson['labelAnnotations']){
         if(Number.parseFloat(labelAnn['score']) > minScore)
-            retObj['tags'].push({'name': labelAnn['description'], 'confidence': Number.parseFloat(labelAnn['score'])});
+            retObj['tags'].push({
+                'name': labelAnn['description'],
+                'mid': (labelAnn['mid'] &&  labelAnn['mid']!= '')? labelAnn['mid']: undefined,
+                'confidence': Number.parseFloat(labelAnn['score'])});
     }
 
     return retObj;
@@ -220,6 +229,7 @@ function buildLandmarksObj(gCloudV, azureCV, minScore = 0.0){
         for(let gLandMark of gCloudLandMarks){
             landmarks.push({
                 name: gLandMark['description'],
+                mid: (gLandMark['mid'] &&  gLandMark['mid']!= '')? gLandMark['mid']: undefined,
                 confidence: gLandMark['score'],
                 latitude: gLandMark['locations'][0]['latLng']['latitude'],
                 longitude: gLandMark['locations'][0]['latLng']['longitude'],
@@ -264,6 +274,7 @@ function buildObjectsObj(gCloudV, azureCV, minScore = 0.0){
             if (gCloudObj['score'] > minScore) { //filter out unwanted tags
                 objects.push({
                     name: gCloudObj['name'],
+                    mid: (gCloudObj['mid'] &&  gCloudObj['mid']!= '')? gCloudObj['mid']: undefined,
                     confidence: gCloudObj['score'],
                     boundingBox: gCloudObj['boundingBox']
                 });
@@ -315,6 +326,7 @@ function buildTextsObj(gCloudV, azureCV, minScore = 0.0){
         texts.push({
             name: gCloudObj['description'],
             confidence: gCloudObj['score'],
+            locale: gCloudObj['locale'],
             boundingBox: gCloudObj['boundingBox']
         });
     }
@@ -329,6 +341,16 @@ function buildTextsObj(gCloudV, azureCV, minScore = 0.0){
     });
 
     return texts;
+}
+
+/*  Starting from google cloud vision web detection elements
+    build a web detection obj
+* */
+function buildWebDetectionObj(gCloudV){
+    let webDetection = gCloudV['webDetection'];
+
+
+    return webDetection;
 }
 
 /*  Add boundingBox property to azure computer vision objects with the standard cogni bounding box schema*/
@@ -398,4 +420,4 @@ function gCloudVObjsToCogniBoundingBox(gCloudObjects, width, height){
     }
 }
 
-module.exports = {buildDescriptionObj, buildTagsObj, buildObjectsObj, buildLandmarksObj, buildTextsObj};
+module.exports = {buildDescriptionObj, buildTagsObj, buildObjectsObj, buildLandmarksObj, buildTextsObj, buildWebDetectionObj};

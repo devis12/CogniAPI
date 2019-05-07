@@ -9,6 +9,9 @@
                     )"
             onmouseleave="eraseFaceBound('face_box_<%= imgAnnotated.imgName%>')">
         <%=txt.name%>
+        <% if(txt.locale && txt.locale != ''){ %>
+            <span class="font-italic text-info">(locale = <%= txt.locale%>)</span>
+        <% } %>
         <div class="progress">
             <div class="progress-bar bg-info" role="progressbar" style="width: <%= Math.floor(txt.confidence*100)%>%>%;"
                  aria-valuenow="<%= Math.floor(txt.confidence*100)%>" aria-valuemin="0" aria-valuemax="100">

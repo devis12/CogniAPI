@@ -51,7 +51,7 @@ function multipleAnalysisRemoteImage(imageUrl, loggedUser, minScore = 0.0){
                 gCloud: values[0],
                 azureV: values[1],
                 azureF: values[2],
-                cogniAPI: reconciliateSchema(values[0][0], values[1], values[2], minScore)
+                cogniAPI: reconciliateSchema(imageUrl, values[0][0], values[1], values[2], minScore)
             };
 
             if(loggedUser){
@@ -95,9 +95,8 @@ function imagesAnn(username, imgUrls, caching, imgAnnb64){
             }
 
             Promise.all(imgAnnotationPromises).then(data => { //format json object with result
-                //console.log('\n\n\nFINAL JSON:\n');
-                //console.log(JSON.stringify(data));
-                if(!caching) {//save on the cache system on first (or later if the caching system is disabled) the retrieved data
+
+                if(username != undefined && username != '' && !caching) {//save on the cache system on first (or later if the caching system is disabled) the retrieved data
                     encodeB64Annotation(username, data);
                 }
                 resolve(data);
@@ -107,7 +106,7 @@ function imagesAnn(username, imgUrls, caching, imgAnnb64){
 }
 
 /*  This function will help us in order to annotate the images in an async way*/
-function asyncImagesAnn(username, imgUrls){
+function asyncImagesAnn(username, imgUrls, caching){
     return new Promise(resolve => {
 
         let promiseFaceGroup;
@@ -129,7 +128,8 @@ function asyncImagesAnn(username, imgUrls){
                     multipleAnalysisRemoteImage(imgUrls[i], username)
                         .then(data => {
                             //save on the cache system on first (or later if the caching system is disabled) the retrieved data
-                            encodeB64Annotation(username, [data])
+                            if(username != undefined && username != '' && !caching)
+                                encodeB64Annotation(username, [data]);
                         });
                 }, i*timeInterval);//perform calls detached at least 60-80s from one another
             }
@@ -140,20 +140,23 @@ function asyncImagesAnn(username, imgUrls){
 
 /*  This function will reconcile the schema in a unique and standard one
 * */
-function reconciliateSchema(gCloudVision, azureVision, azureFace, minScore){
+function reconciliateSchema(imageUrl, gCloudVision, azureVision, azureFace, minScore){
     let cogniAPI = {};//add field for cogniAPI data
 
+    cogniAPI['imageUrl'] = imageUrl;
     cogniAPI['description'] = descriptionUtilities.buildDescriptionObj(gCloudVision, azureVision);
     cogniAPI['tags'] = descriptionUtilities.buildTagsObj(gCloudVision, azureVision, minScore);
     cogniAPI['objects'] = descriptionUtilities.buildObjectsObj(gCloudVision, azureVision, minScore);
     cogniAPI['landmarks'] = descriptionUtilities.buildLandmarksObj(gCloudVision, azureVision);
     cogniAPI['texts'] = descriptionUtilities.buildTextsObj(gCloudVision, azureVision);
+    cogniAPI['webDetection'] = descriptionUtilities.buildWebDetectionObj(gCloudVision);
 
     cogniAPI['faces'] = faceUtilities.buildFacesObj(gCloudVision['faceAnnotations'], azureFace, azureVision);
 
     cogniAPI['safetyAnnotation'] = safetyUtilities.buildSafetyObj(gCloudVision['safeSearchAnnotation'], azureVision['adult']);
     cogniAPI['metadata'] = azureVision['metadata'];
     cogniAPI['graphicalData'] = colorInfoUtilities.buildColorInfoObj(gCloudVision['imagePropertiesAnnotation']['dominantColors'], azureVision['color'], azureVision['imageType']);
+
 
 
     return cogniAPI;
@@ -193,34 +196,4 @@ function encodeB64Annotation(username, imgAnnotations){
 }
 
 
-/*  Multiple analysis of an image performed by two main services:
-        -Google Cloud Vision
-        -Azure Computer Vision
-* */
-function multipleTagsAnalysisRemoteImage(imageUrl, minScore){
-    return new Promise((resolve, reject) => {
-        console.log('Request tags for ' + imageUrl);
-        let pGCloudV = gcloudVision.analyseRemoteImage(imageUrl, [
-            {type:'LANDMARK_DETECTION'}, {type:'LOGO_DETECTION'}, {type:'LABEL_DETECTION'}]);
-        let pAzureV = azureCompVision.analyseRemoteImage(imageUrl, 'Tags,Categories,Description');
-
-        Promise.all([pGCloudV, pAzureV])
-            .then( values => {
-
-                let jsonCombineRes = {
-                    annotationDate: new Date(),
-                    imgUrl: imageUrl,
-                    imgName: imageUrl.substr(imageUrl.lastIndexOf('/')+1),
-                    gCloud: gcloudVision.filterTags(values[0], minScore),
-                    azureV: azureCompVision.filterTags(values[1], minScore)
-                };
-
-                resolve(jsonCombineRes);
-            })
-
-            .catch(e => reject(e));
-
-    });
-}
-
-module.exports = {multipleAnalysisRemoteImage, imagesAnn, asyncImagesAnn, multipleTagsAnalysisRemoteImage};
+module.exports = {multipleAnalysisRemoteImage, imagesAnn, asyncImagesAnn};

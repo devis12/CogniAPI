@@ -1,0 +1,185 @@
+<h3 class="text-center">Web</h3>
+
+<div id="accordionWE_<%= annCounter%>">
+
+    <% if(imgAnnotated.cogniAPI.webDetection.webEntities.length > 0){ %>
+        <div class="card">
+            <div class="card-header" id="headingWebEntities_<%= annCounter%>">
+                <h5 class="mb-0">
+                    <button class="btn btn-link" data-toggle="collapse"
+                            data-target="#collapseWebEntities_<%= annCounter%>"
+                            aria-expanded="true" aria-controls="collapseWebEntities_<%= annCounter%>">
+                        <h5 class="font-italic">Web Entities</h5>
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapseWebEntities_<%= annCounter%>" class="collapse" aria-labelledby="headingWebEntities_<%= annCounter%>"
+                 data-parent="#accordionWE_<%= annCounter%>">
+                <div class="card-body">
+                    <% for(webEntity of imgAnnotated.cogniAPI.webDetection.webEntities){ %>
+                        <div class="mt-3 mb-3">
+                            <%=webEntity.description%>
+                            <% if(webEntity.entityId && webEntity.entityId != ''){ %>
+                                <span class="font-italic text-info">(entityId = <%= webEntity.entityId%>)</span>
+                            <% } %>
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: <%= Math.floor(webEntity.score*100)%>%>%;"
+                                     aria-valuenow="<%= Math.floor(webEntity.score*100)%>" aria-valuemin="0" aria-valuemax="100">
+                                    <%= Math.floor(webEntity.score*100)%>%
+                                </div>
+                            </div>
+                        </div>
+                    <% }%>
+                </div>
+            </div>
+        </div>
+    <% } %>
+
+    <% if(imgAnnotated.cogniAPI.webDetection.partialMatchingImages.length > 0){ %>
+        <div class="card">
+            <div class="card-header" id="headingPMatchingImg_<%= annCounter%>">
+                <h5 class="mb-0">
+                    <button class="btn btn-link" data-toggle="collapse"
+                            data-target="#collapsePMatchingImg_<%= annCounter%>"
+                            aria-expanded="true" aria-controls="collapsePMatchingImg_<%= annCounter%>">
+                        <h5 class="font-italic">Partial matching images</h5>
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapsePMatchingImg_<%= annCounter%>" class="collapse" aria-labelledby="headingPMatchingImg_<%= annCounter%>"
+                 data-parent="#accordionWE_<%= annCounter%>">
+                <div class="card-body text-center m-auto">
+                    <% for(matchingImg of imgAnnotated.cogniAPI.webDetection.partialMatchingImages){ %>
+                        <div class="mt-3 mb-3">
+                            <img src="<%=matchingImg.url%>" class="w-50">
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: <%= Math.floor(matchingImg.score*100)%>%>%;"
+                                     aria-valuenow="<%= Math.floor(matchingImg.score*100)%>" aria-valuemin="0" aria-valuemax="100">
+                                    <%= Math.floor(matchingImg.score*100)%>%
+                                </div>
+                            </div>
+                        </div>
+                    <% }%>
+                </div>
+            </div>
+        </div>
+    <% } %>
+
+    <% if(imgAnnotated.cogniAPI.webDetection.fullMatchingImages.length > 0){ %>
+        <div class="card">
+            <div class="card-header" id="headingFMatchingImg_<%= annCounter%>">
+                <h5 class="mb-0">
+                    <button class="btn btn-link" data-toggle="collapse"
+                            data-target="#collapseFMatchingImg_<%= annCounter%>"
+                            aria-expanded="true" aria-controls="collapseFMatchingImg_<%= annCounter%>">
+                        <h5 class="font-italic">Full matching images</h5>
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapseFMatchingImg_<%= annCounter%>" class="collapse" aria-labelledby="headingFMatchingImg_<%= annCounter%>"
+                 data-parent="#accordionWE_<%= annCounter%>">
+                <div class="card-body text-center m-auto">
+                    <% for(matchingImg of imgAnnotated.cogniAPI.webDetection.fullMatchingImages){ %>
+                        <div class="mt-3 mb-3">
+                            <img src="<%=matchingImg.url%>" class="w-50">
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: <%= Math.floor(matchingImg.score*100)%>%>%;"
+                                     aria-valuenow="<%= Math.floor(matchingImg.score*100)%>" aria-valuemin="0" aria-valuemax="100">
+                                    <%= Math.floor(matchingImg.score*100)%>%
+                                </div>
+                            </div>
+                        </div>
+                    <% }%>
+                </div>
+            </div>
+        </div>
+    <% } %>
+
+    <% if(imgAnnotated.cogniAPI.webDetection.pagesWithMatchingImages.length > 0){ %>
+        <div class="card">
+            <div class="card-header" id="headingPgMatchingImg_<%= annCounter%>">
+                <h5 class="mb-0">
+                    <button class="btn btn-link" data-toggle="collapse"
+                            data-target="#collapsePgMatchingImg_<%= annCounter%>"
+                            aria-expanded="true" aria-controls="collapsePgMatchingImg_<%= annCounter%>">
+                        <h5 class="font-italic">Pages with matching images</h5>
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapsePgMatchingImg_<%= annCounter%>" class="collapse" aria-labelledby="headingPgMatchingImg_<%= annCounter%>"
+                 data-parent="#accordionWE_<%= annCounter%>">
+                <div class="card-body text-center m-auto">
+                    <% for(webPage of imgAnnotated.cogniAPI.webDetection.pagesWithMatchingImages){ %>
+                        <div class="mt-3 mb-3">
+                            <a href="<%= webPage.url%>"><%= webPage.pageTitle%></a>
+                        </div>
+                        <hr />
+                    <% }%>
+                </div>
+            </div>
+        </div>
+    <% } %>
+
+    <% if(imgAnnotated.cogniAPI.webDetection.visuallySimilarImages.length > 0){ %>
+        <div class="card">
+            <div class="card-header" id="headingVisSimImg_<%= annCounter%>">
+                <h5 class="mb-0">
+                    <button class="btn btn-link" data-toggle="collapse"
+                            data-target="#collapseVisSimImg_<%= annCounter%>"
+                            aria-expanded="true" aria-controls="collapseVisSimImg_<%= annCounter%>">
+                        <h5 class="font-italic">Visually Similar Images</h5>
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapseVisSimImg_<%= annCounter%>" class="collapse" aria-labelledby="headingVisSimImg_<%= annCounter%>"
+                 data-parent="#accordionWE_<%= annCounter%>">
+                <div class="card-body text-center m-auto">
+                    <% for(visualSimImg of imgAnnotated.cogniAPI.webDetection.visuallySimilarImages){ %>
+                        <div class="mt-3 mb-3">
+                            <img src="<%=visualSimImg.url%>" class="w-50">
+                            <div class="progress">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: <%= Math.floor(visualSimImg.score*100)%>%>%;"
+                                     aria-valuenow="<%= Math.floor(visualSimImg.score*100)%>" aria-valuemin="0" aria-valuemax="100">
+                                    <%= Math.floor(visualSimImg.score*100)%>%
+                                </div>
+                            </div>
+                        </div>
+                    <% }%>
+                </div>
+            </div>
+        </div>
+    <% } %>
+
+    <% if(imgAnnotated.cogniAPI.webDetection.bestGuessLabels.length > 0){ %>
+        <div class="card">
+            <div class="card-header" id="headingBGuessLabels_<%= annCounter%>">
+                <h5 class="mb-0">
+                    <button class="btn btn-link" data-toggle="collapse"
+                            data-target="#collapseBGuessLabels_<%= annCounter%>"
+                            aria-expanded="true" aria-controls="collapseBGuessLabels_<%= annCounter%>">
+                        <h5 class="font-italic">Best Guess Labels</h5>
+                    </button>
+                </h5>
+            </div>
+
+            <div id="collapseBGuessLabels_<%= annCounter%>" class="collapse" aria-labelledby="headingBGuessLabels_<%= annCounter%>"
+                 data-parent="#accordionWE_<%= annCounter%>">
+                <div class="card-body">
+                    <% for(bGuessLab of imgAnnotated.cogniAPI.webDetection.bestGuessLabels){ %>
+                        <div class="mt-3 mb-3">
+                            <%= bGuessLab.label%>
+                            <span class="font-italic text-info">(languageCode=<%= bGuessLab.languageCode%>)</span>
+                        </div>
+                    <% }%>
+                </div>
+            </div>
+        </div>
+    <% } %>
+
+</div>
+

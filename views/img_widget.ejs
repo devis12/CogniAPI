@@ -1,32 +1,53 @@
 <div class="text-center">
-    <nav class="tabs">
-        <div class="selector"></div>
-        <a class="active" onclick="changePaperTab('FaceDetRec_', '<%= imgAnnotated.imgName%>')">
-            Face Detection & Recognition
-        </a>
-        <a onclick="changePaperTab('Faces_', '<%= imgAnnotated.imgName%>')">
-            Faces
-        </a>
-        <a onclick="changePaperTab('Description_', '<%= imgAnnotated.imgName%>')">
-            Description
-        </a>
-        <a onclick="changePaperTab('Tags_', '<%= imgAnnotated.imgName%>')">
+    <nav class="tabs" id="tabs_<%= imgAnnotated.imgName%>">
+        <div class="selector" id="selector_<%= imgAnnotated.imgName%>"></div>
+        <% if(imgAnnotated.cogniAPI.faces.length > 0){ %>
+            <a id="FaceDetRecT_<%= imgAnnotated.imgName%>" class="active" onclick="changePaperTab(this, 'FaceDetRec_', '<%= imgAnnotated.imgName%>')">
+                Face Detection & Recognition
+            </a>
+            <a id="FacesT_<%= imgAnnotated.imgName%>" onclick="changePaperTab(this, 'Faces_', '<%= imgAnnotated.imgName%>')">
+                Faces
+            </a>
+            <a id="DescriptionT_<%= imgAnnotated.imgName%>" onclick="changePaperTab(this, 'Description_', '<%= imgAnnotated.imgName%>')">
+                Description
+            </a>
+        <% }else{ %>
+            <a id="DescriptionT_<%= imgAnnotated.imgName%>" class="active" onclick="changePaperTab(this, 'Description_', '<%= imgAnnotated.imgName%>')">
+                Description
+            </a>
+        <% }%>
+        <a id="TagsT_<%= imgAnnotated.imgName%>" onclick="changePaperTab(this, 'Tags_', '<%= imgAnnotated.imgName%>')">
             Tags
         </a>
-        <a onclick="changePaperTab('Objects_', '<%= imgAnnotated.imgName%>')">
-            Objects
-        </a>
-        <a onclick="changePaperTab('Text_', '<%= imgAnnotated.imgName%>')">
-            Text
-        </a>
-        <a onclick="changePaperTab('Landmarks_', '<%= imgAnnotated.imgName%>')">
-            Landmarks
-        </a>
-        <a onclick="changePaperTab('SafetyAnn_', '<%= imgAnnotated.imgName%>')">
+
+        <% if(imgAnnotated.cogniAPI.objects.length > 0){ %>
+            <a id="ObjectsT_<%= imgAnnotated.imgName%>" onclick="changePaperTab(this, 'Objects_', '<%= imgAnnotated.imgName%>')">
+                Objects
+            </a>
+        <% } %>
+
+        <% if(imgAnnotated.cogniAPI.texts.length > 0){ %>
+            <a id="TextsT_<%= imgAnnotated.imgName%>" onclick="changePaperTab(this, 'Text_', '<%= imgAnnotated.imgName%>')">
+                Text
+            </a>
+        <% } %>
+
+        <% if(imgAnnotated.cogniAPI.landmarks.length > 0){ %>
+            <a id="LandmarksT_<%= imgAnnotated.imgName%>" onclick="changePaperTab(this, 'Landmarks_', '<%= imgAnnotated.imgName%>')">
+                Landmarks
+            </a>
+        <% } %>
+
+        <a id="SafetyAnnT_<%= imgAnnotated.imgName%>" onclick="changePaperTab(this, 'SafetyAnn_', '<%= imgAnnotated.imgName%>')">
             Safety
         </a>
-        <a onclick="changePaperTab('Colors_', '<%= imgAnnotated.imgName%>')">
+
+        <a id="ColorsT_<%= imgAnnotated.imgName%>" onclick="changePaperTab(this, 'Colors_', '<%= imgAnnotated.imgName%>')">
             Colors
+        </a>
+
+        <a id="WebT_<%= imgAnnotated.imgName%>" onclick="changePaperTab(this, 'Web_', '<%= imgAnnotated.imgName%>')">
+            Web
         </a>
     </nav>
 
@@ -40,36 +61,47 @@
         <div class="faceBoundingBox" id="face_box_<%= imgAnnotated.imgName%>"></div>
     </div>
 
-
     <div id="img_ann_box_<%= imgAnnotated.imgName%>" class="col-6 alert-info" style="display:none;overflow: scroll">
 
-        <div id="FaceDetRec_<%= imgAnnotated.imgName%>">
-            <%- include('faceDetRec', imgAnnotated)%>
-        </div>
+        <% if(imgAnnotated.cogniAPI.faces.length > 0){ %>
+            <div id="FaceDetRec_<%= imgAnnotated.imgName%>">
+                <%- include('faceDetRec', imgAnnotated)%>
+            </div>
 
-        <div id="Faces_<%= imgAnnotated.imgName%>" style="display: none">
-            <%- include('faces', imgAnnotated)%>
-        </div>
+            <div id="Faces_<%= imgAnnotated.imgName%>" style="display: none">
+                <%- include('faces', imgAnnotated)%>
+            </div>
 
-        <div id="Description_<%= imgAnnotated.imgName%>" style="display: none">
-            <%- include('description', imgAnnotated)%>
-        </div>
+            <div id="Description_<%= imgAnnotated.imgName%>" style="display: none">
+                <%- include('description', imgAnnotated)%>
+            </div>
+        <% }else{ %>
+            <div id="Description_<%= imgAnnotated.imgName%>">
+                <%- include('description', imgAnnotated)%>
+            </div>
+        <% } %>
 
         <div id="Tags_<%= imgAnnotated.imgName%>" style="display: none">
             <%- include('tags', imgAnnotated)%>
         </div>
 
-        <div id="Objects_<%= imgAnnotated.imgName%>" style="display: none">
-            <%- include('objects', imgAnnotated)%>
-        </div>
+        <% if(imgAnnotated.cogniAPI.objects.length > 0){ %>
+            <div id="Objects_<%= imgAnnotated.imgName%>" style="display: none">
+                <%- include('objects', imgAnnotated)%>
+            </div>
+        <% } %>
 
-        <div id="Text_<%= imgAnnotated.imgName%>" style="display: none">
-            <%- include('text', imgAnnotated)%>
-        </div>
+        <% if(imgAnnotated.cogniAPI.texts.length > 0){ %>
+            <div id="Text_<%= imgAnnotated.imgName%>" style="display: none">
+                <%- include('text', imgAnnotated)%>
+            </div>
+        <% } %>
 
-        <div id="Landmarks_<%= imgAnnotated.imgName%>" style="display: none">
-            <%- include('landmarks', imgAnnotated)%>
-        </div>
+        <% if(imgAnnotated.cogniAPI.landmarks.length > 0){ %>
+            <div id="Landmarks_<%= imgAnnotated.imgName%>" style="display: none">
+                <%- include('landmarks', imgAnnotated)%>
+            </div>
+        <% } %>
 
         <div id="SafetyAnn_<%= imgAnnotated.imgName%>" style="display: none">
             <%- include('safetyAnn', imgAnnotated)%>
@@ -79,5 +111,10 @@
             <%- include('colors', imgAnnotated)%>
         </div>
 
+        <div id="Web_<%= imgAnnotated.imgName%>" style="display: none">
+            <%- include('webDetection', {imgAnnotated, annCounter})%>
+        </div>
+
     </div>
+
 </div>

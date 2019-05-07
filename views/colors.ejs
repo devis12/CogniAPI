@@ -22,7 +22,7 @@
 
 <div class="mt-3">
     <h5>Accent Color (hex)</h5>
-    <%= graphicalData.accentColor%>
+    #<%= graphicalData.accentColor%>
     <span class="ml-1 squareLikelihood" style="color: #<%= graphicalData.accentColor%>;background-color:#<%= graphicalData.accentColor%>">
         ___
     </span>
@@ -104,7 +104,7 @@
 
 <div class="mt-3">
     <h5>Black and white image
-        <% if(graphicalData.BWImg){ %>
+        <% if(graphicalData.isBWImg){ %>
             <i class="ml-2 far fa-thumbs-up text-dark"></i>
         <% }else{ %>
             <i class="ml-2 far fa-thumbs-down text-dark"></i>

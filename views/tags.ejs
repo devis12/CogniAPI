@@ -3,6 +3,9 @@
 <% for(tag of imgAnnotated.cogniAPI.tags){ %>
     <div class="mt-3 mb-3">
         <%=tag.name%>
+        <% if(tag.mid && tag.mid != ''){ %>
+            <span class="font-italic text-info">(mid = <%= tag.mid%>)</span>
+        <% } %>
         <div class="progress">
             <div class="progress-bar bg-primary" role="progressbar" style="width: <%= Math.floor(tag.confidence*100)%>%>%;"
                  aria-valuenow="<%= Math.floor(tag.confidence*100)%>" aria-valuemin="0" aria-valuemax="100">
