@@ -21,7 +21,7 @@ router.get('/azure/analyse', (req, res) => {
     if(imgUrl){
         azureLogic.analyseRemoteImageCogniSchema(imgUrl, loggedUser, minScore)
             .then( jsonAnn => res.status(200).json(jsonAnn))
-            .catch(e => res.status(400).json({}));
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400).json({});
     }
@@ -36,7 +36,7 @@ router.get('/azure/faces', (req, res) => {
     if(imgUrl){
         azureLogic.analyseRemoteImageCogniSchema(imgUrl, loggedUser, 0.0)
             .then( jsonAnn => res.status(200).json(jsonAnn.faces))
-            .catch(e => res.status(400).json({}));
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400).json({});
     }
@@ -52,7 +52,7 @@ router.get('/azure/tags', (req, res) => {
     if(imgUrl){
         azureLogic.analyseRemoteImageCogniSchema(imgUrl, null, minScore)
             .then( jsonAnn => res.status(200).json(jsonAnn.tags))
-            .catch(e => res.status(400).json({}));
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400).json({});
     }
@@ -68,7 +68,7 @@ router.get('/azure/objects', (req, res) => {
     if(imgUrl){
         azureLogic.analyseRemoteImageCogniSchema(imgUrl, null, minScore)
             .then( jsonAnn => res.status(200).json(jsonAnn.objects))
-            .catch(e => res.status(400).json({}));
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400).json({});
     }
@@ -81,7 +81,7 @@ router.get('/azure/landmarks', (req, res) => {
     if(imgUrl){
         azureLogic.analyseRemoteImageCogniSchema(imgUrl, null, 0.0)
             .then( jsonAnn => res.status(200).json(jsonAnn.landmarks))
-            .catch(e => res.status(400).json({}));
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400).json({});
     }
@@ -94,7 +94,7 @@ router.get('/azure/safety', (req, res) => {
     if(imgUrl){
         azureLogic.analyseRemoteImageCogniSchema(imgUrl, null, 0.0)
             .then( jsonAnn => res.status(200).json(jsonAnn.safetyAnnotation))
-            .catch(e => res.status(400).json({}));
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400).json({});
     }
@@ -107,7 +107,7 @@ router.get('/azure/colors', (req, res) => {
     if(imgUrl){
         azureLogic.analyseRemoteImageCogniSchema(imgUrl, null, 0.0)
             .then( jsonAnn => res.status(200).json(jsonAnn.graphicalData))
-            .catch(e => res.status(400).json({}));
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400).json({});
     }

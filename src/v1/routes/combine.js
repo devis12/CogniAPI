@@ -21,7 +21,7 @@ router.get('/analyse', (req, res) => {
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl, loggedUser, minScore)
             .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI))
-            .catch(e => res.status(400).json({}));
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400).json({});
     }
@@ -34,7 +34,7 @@ router.get('/analyse/faces', (req, res) => {
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl, loggedUser)
             .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.faces))
-            .catch(e => res.status(400).json({}));
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400).json({});
     }
@@ -50,7 +50,7 @@ router.get('/analyse/tags', (req, res) => {
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl, null, minScore)
             .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.tags))
-            .catch(e => res.status(400).json({}));
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400).json({});
     }
@@ -63,7 +63,7 @@ router.get('/analyse/description', (req, res) => {
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl)
             .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.description))
-            .catch(e => res.status(400).json({}));
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400).json({});
     }
@@ -79,7 +79,7 @@ router.get('/analyse/objects', (req, res) => {
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl, null, minScore)
             .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.objects))
-            .catch(e => res.status(400).json({}));
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400).json({});
     }
@@ -91,7 +91,7 @@ router.get('/analyse/texts', (req, res) => {
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl)
             .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.texts))
-            .catch(e => res.status(400).json({}));
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400).json({});
     }
@@ -103,7 +103,7 @@ router.get('/analyse/landmarks', (req, res) => {
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl)
             .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.landmarks))
-            .catch(e => res.status(400).json({}));
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400).json({});
     }
@@ -115,7 +115,7 @@ router.get('/analyse/safety', (req, res) => {
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl)
             .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.safetyAnnotation))
-            .catch(e => res.status(400).json({}));
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400).json({});
     }
@@ -127,7 +127,7 @@ router.get('/analyse/colors', (req, res) => {
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl)
             .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.graphicalData))
-            .catch(e => res.status(400).json({}));
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400).json({});
     }

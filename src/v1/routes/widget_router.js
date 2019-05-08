@@ -90,7 +90,8 @@ router.post('/manage/singleImg', (req, res) => {
                     user: username,
                     gui_type: 'imgAnn'
                 });
-        });
+            })
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
 
     }else{
         res.status(400); //bad request
@@ -117,7 +118,8 @@ router.post('/upload/images', (req, res) => {
                         user: username,
                         gui_type: 'imgAnn'
                     });
-            });
+            })
+            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
         res.status(400); //bad request
     }

@@ -22,9 +22,7 @@ router.get('/gcloud/analyse', (req, res) => {
         .then( data => {
             res.status(200).json(data);
         })
-        .catch(e => {
-            res.status(400).json({});
-        });
+        .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
 });
 
 // gcloud faces analysis remote image (annotation returned with cogniAPI schema)
@@ -35,9 +33,7 @@ router.get('/gcloud/faces', (req, res) => {
         .then( data => {
             res.status(200).json(data.faces);
         })
-        .catch(e => {
-            res.status(400).json({});
-        });
+        .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
 });
 
 // gcloud tags analysis remote image (annotation returned with cogniAPI schema)
@@ -48,9 +44,7 @@ router.get('/gcloud/tags', (req, res) => {
         .then( data => {
             res.status(200).json(data.tags);
         })
-        .catch(e => {
-            res.status(400).json({});
-        });
+        .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
 });
 
 // gcloud objects analysis remote image (annotation returned with cogniAPI schema)
@@ -61,9 +55,7 @@ router.get('/gcloud/objects', (req, res) => {
         .then( data => {
             res.status(200).json(data.objects);
         })
-        .catch(e => {
-            res.status(400).json({});
-        });
+        .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
 });
 
 // gcloud description analysis remote image (annotation returned with cogniAPI schema)
@@ -74,9 +66,7 @@ router.get('/gcloud/description', (req, res) => {
         .then( data => {
             res.status(200).json(data.description);
         })
-        .catch(e => {
-            res.status(400).json({});
-        });
+        .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
 });
 
 // gcloud texts analysis remote image (annotation returned with cogniAPI schema)
@@ -87,9 +77,7 @@ router.get('/gcloud/texts', (req, res) => {
         .then( data => {
             res.status(200).json(data.texts);
         })
-        .catch(e => {
-            res.status(400).json({});
-        });
+        .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
 });
 
 // gcloud landmarks analysis remote image (annotation returned with cogniAPI schema)
@@ -100,9 +88,7 @@ router.get('/gcloud/landmarks', (req, res) => {
         .then( data => {
             res.status(200).json(data.landmarks);
         })
-        .catch(e => {
-            res.status(400).json({});
-        });
+        .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
 });
 
 // gcloud safety analysis remote image (annotation returned with cogniAPI schema)
@@ -113,9 +99,7 @@ router.get('/gcloud/safety', (req, res) => {
         .then( data => {
             res.status(200).json(data.safetyAnnotation);
         })
-        .catch(e => {
-            res.status(400).json({});
-        });
+        .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
 });
 
 // gcloud colors analysis remote image (annotation returned with cogniAPI schema)
@@ -126,9 +110,7 @@ router.get('/gcloud/colors', (req, res) => {
         .then( data => {
             res.status(200).json(data.graphicalData);
         })
-        .catch(e => {
-            res.status(400).json({});
-        });
+        .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
 });
 
 

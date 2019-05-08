@@ -57,9 +57,13 @@ function analyseRemoteImage(imageUrl, customFeatures){
                         resolve(response);
                     })
                     .catch(err => {
-                        console.error(err);
                         reject(err);
                     });
+            }).catch( errRequest => {
+                if(errRequest.error && errRequest.error.code == 'ENOTFOUND')
+                    reject({err_status: 404, err_code: 'Not Found'});
+                else
+                    reject({err_status: 400, err_code: 'Bad Request'});
             });
         }else{
             client
@@ -79,22 +83,27 @@ function analyseRemoteImage(imageUrl, customFeatures){
 
 //functions to perform single image annotation, but to pack the values as a json respecting the cogniAPI schema
 function analyseRemoteImageCogniSchema(imageUrl, minScore){
-    return new Promise( resolve => {
-        analyseRemoteImage(imageUrl).then(gCloudJSON => {
-            let imgAnn = gCloudJSON[0];//gCloudJSON is basically an array of imgAnnotations, but we're analyzing a single one
-            requestImageSize(imageUrl)
-                .then(size => {
-                    imgAnn['metadata'] = {};
-                    imgAnn['metadata']['width'] = size['width'];
-                    imgAnn['metadata']['height'] = size['height'];
-                    imgAnn['metadata']['format'] = size['type'];
+    return new Promise( (resolve, reject) => {
+        analyseRemoteImage(imageUrl)
+            .then(gCloudJSON => {
+                let imgAnn = gCloudJSON[0];//gCloudJSON is basically an array of imgAnnotations, but we're analyzing a single one
+                requestImageSize(imageUrl)
+                    .then(size => {
+                        imgAnn['metadata'] = {};
+                        imgAnn['metadata']['width'] = size['width'];
+                        imgAnn['metadata']['height'] = size['height'];
+                        imgAnn['metadata']['format'] = size['type'];
 
-                    resolve (reconciliateSchemaGCloud(imageUrl, imgAnn, minScore));
-                })
+                        resolve (reconciliateSchemaGCloud(imageUrl, imgAnn, minScore));
+                    })
                 .catch(err => console.error(err));
 
 
-        });
+            })
+            .catch( errValue => {
+               console.log(errValue);
+               reject(errValue);
+            });
     });
 }
 

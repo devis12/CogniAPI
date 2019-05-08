@@ -63,13 +63,16 @@ function multipleAnalysisRemoteImage(imageUrl, loggedUser, minScore = 0.0){
                     .then(() => resolve(jsonCombineRes));
             }else
                 resolve(jsonCombineRes);
+        }).catch( err_values => {
+            console.log(err_values);
+            reject(err_values);
         });
     });
 }
 
 /*  This function will help us in order to annotate the images and render the result*/
 function imagesAnn(username, imgUrls, caching, imgAnnb64){
-    return new Promise(resolve => {
+    return new Promise((resolve, reject) => {
         let promiseFaceGroup;
         if(username != undefined && username != ''){
             //trying creating a group faces related to the logged user (if it doesn't exist)
@@ -100,6 +103,11 @@ function imagesAnn(username, imgUrls, caching, imgAnnb64){
                     encodeB64Annotation(username, data);
                 }
                 resolve(data);
+
+            }).catch( err_values => {
+                console.log("ImagesAnn:");
+                console.log(err_values);
+                reject(err_values);
             });
         });
     });

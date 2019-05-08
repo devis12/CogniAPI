@@ -5,13 +5,15 @@
 if(window.location.hostname == 'cogni-api.herokuapp.com')
     herokuTest = true;
 
+let maxFileSize = 4096;
+
 /*  Upload wrapper function */
 function upload(pwd, username, asyncUp){
     //check validity of parameter
     if(!checkUploadParams(pwd))
         return;
 
-    $('#progressBar').html('<progress></progress>');
+   $('#progressBar').html('<progress></progress>');
 
     //request auth token with inserted pwd
     uploadAuth(pwd)
@@ -61,8 +63,15 @@ function checkUploadParams(pwd){
         $('#pwdAlert').addClass('visible');
         return false;
 
-    }else
+    }else{
+        for(let file of $('#groupImages').prop('files')){
+            if((file.size/1024) > maxFileSize){
+                alert('Sorry! You can upload just files up to ' + maxFileSize + 'KB');
+                return false;
+            }
+        }
         return true;
+    }
 }
 
 /*  Perform auth with given pwd and get the token necessary in order to perform the actual files upload */

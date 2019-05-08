@@ -61,10 +61,19 @@ function analyseRemoteImage(imageUrl, visualFeatures){
             }
         })
             .then(res => {
-                if(!res.ok)//res.status<200 || res.status >=300
-                    reject({err_status: res.status});
+                console.log('Azure CV status: ' + res.status);
+                if(!res.ok) {//res.status<200 || res.status >=300
 
-                res.json().then(json => resolve(json)).catch(e => reject(e));
+                    res.json().then(resErr =>
+                        reject({
+                            err_status: res.status,
+                            err_msg: resErr.message,
+                            err_code: resErr.code
+                        })
+                    );
+                }else
+                    res.json().then(json => resolve(json)).catch(e => reject(e));
+
             }).catch(e => reject(e));
 
     });
@@ -72,27 +81,32 @@ function analyseRemoteImage(imageUrl, visualFeatures){
 
 //functions to perform single image annotation, but to pack the values as a json respecting the cogniAPI schema
 function analyseRemoteImageCogniSchema(imageUrl, loggedUser, minScore){
-    return new Promise( resolve => {
+    return new Promise( (resolve, reject) => {
 
         let azureCVP = analyseRemoteImage(imageUrl);
         let azureFP = faceRemoteImage(imageUrl);
 
-        Promise.all([azureCVP, azureFP]).then(azureAnn => {
-            let azureCV = azureAnn[0];
-            let azureF = azureAnn[1];
+        Promise.all([azureCVP, azureFP])
+            .then(azureAnn => {
+                let azureCV = azureAnn[0];
+                let azureF = azureAnn[1];
 
-            let cogniAPI = reconciliateSchemaAzure(imageUrl, azureCV, azureF, minScore);
+                let cogniAPI = reconciliateSchemaAzure(imageUrl, azureCV, azureF, minScore);
 
-            if(loggedUser){
-                //add tag in case you find a similar faces, already registered by the logged user
-                findSimilar(
-                    loggedUser,
-                    cogniAPI.faces)
+                if(loggedUser){
+                    //add tag in case you find a similar faces, already registered by the logged user
+                    findSimilar(
+                        loggedUser,
+                        cogniAPI.faces)
 
-                    .then(() => resolve(cogniAPI));
-            }else
-                resolve(cogniAPI);
-        });
+                        .then(() => resolve(cogniAPI));
+                }else
+                    resolve(cogniAPI);
+            })
+            .catch(err_values => {
+               console.log(err_values);
+               reject(err_values);
+            });
 
     });
 }
@@ -156,10 +170,18 @@ function faceRemoteImage(imageUrl){
             }
         })
             .then(res => {
-                if(!res.ok)//res.status<200 || res.status >=300
-                    reject({err_status: res.status});
+                console.log('Azure Face status: ' + res.status);
+                if(!res.ok){//res.status<200 || res.status >=300
+                    res.json().then(resErr =>
+                        reject({
+                            err_status: res.status,
+                            err_msg: resErr.message,
+                            err_code: resErr.code
+                        })
+                    );
+                }else
+                    res.json().then(json => resolve(json)).catch(e => reject(e));
 
-                res.json().then(json => resolve(json)).catch(e => reject(e));
             }).catch(e => reject(e));
 
     });
