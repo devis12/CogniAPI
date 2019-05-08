@@ -23,7 +23,7 @@ router.get('/azure/analyse', (req, res) => {
             .then( jsonAnn => res.status(200).json(jsonAnn))
             .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
-        res.status(400).json({});
+        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
     }
 });
 
@@ -38,7 +38,7 @@ router.get('/azure/faces', (req, res) => {
             .then( jsonAnn => res.status(200).json(jsonAnn.faces))
             .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
-        res.status(400).json({});
+        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
     }
 });
 
@@ -54,7 +54,7 @@ router.get('/azure/tags', (req, res) => {
             .then( jsonAnn => res.status(200).json(jsonAnn.tags))
             .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
-        res.status(400).json({});
+        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
     }
 });
 
@@ -70,7 +70,7 @@ router.get('/azure/objects', (req, res) => {
             .then( jsonAnn => res.status(200).json(jsonAnn.objects))
             .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
-        res.status(400).json({});
+        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
     }
 });
 
@@ -83,7 +83,7 @@ router.get('/azure/landmarks', (req, res) => {
             .then( jsonAnn => res.status(200).json(jsonAnn.landmarks))
             .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
-        res.status(400).json({});
+        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
     }
 });
 
@@ -96,7 +96,7 @@ router.get('/azure/safety', (req, res) => {
             .then( jsonAnn => res.status(200).json(jsonAnn.safetyAnnotation))
             .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
-        res.status(400).json({});
+        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
     }
 });
 
@@ -109,7 +109,7 @@ router.get('/azure/colors', (req, res) => {
             .then( jsonAnn => res.status(200).json(jsonAnn.graphicalData))
             .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
     }else{
-        res.status(400).json({});
+        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
     }
 });
 
@@ -127,10 +127,10 @@ router.post('/azure/faces/:loggedUser', (req, res) => {
                 res.status(200).send('Added face correctly for user ' + loggedUser);
             })
             .catch(e => {
-                res.status(400).send(e);
+                res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
             });
     }else{
-        res.status(400).send('Invalid Data');
+        res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
     }
 
 });
@@ -148,10 +148,10 @@ router.patch('/azure/faces/:loggedUser', (req, res) => {
                 res.status(200).send('Patched face correctly for user ' + loggedUser);
             })
             .catch(e => {
-                res.status(400).send(e);
+                res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
             });
     }else{
-        res.status(400).send('Invalid Data');
+        res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
     }
 
 });
@@ -168,10 +168,10 @@ router.delete('/azure/faces/:loggedUser', (req, res) => {
                 res.status(200).send('Deleted face correctly for user ' + loggedUser);
             })
             .catch(e => {
-                res.status(400).send(e);
+                res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
             });
     }else{
-        res.status(400).send('Invalid Data');
+        res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
     }
 
 });
@@ -188,10 +188,10 @@ router.post('/azure/faces/train/:loggedUser', (req, res) => {
                 res.status(200).send('Training face group phase has started correctly for user ' + loggedUser);
             })
             .catch(e => {
-                res.status(400).send(e);
+                res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
             });
     }else{
-        res.status(400).send('Invalid Data');
+        res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
     }
 
 });
