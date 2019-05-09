@@ -185,7 +185,7 @@ router.post('/azure/faces/train/:loggedUser', (req, res) => {
     if(loggedUser){
         azureLogic.trainFaceGroup(loggedUser)
             .then( data => {
-                res.status(200).send('Training face group phase has started correctly for user ' + loggedUser);
+                res.status(202).send('Training face group phase has started correctly for user ' + loggedUser);
             })
             .catch(e => {
                 res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});

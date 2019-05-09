@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto');
 
+img {
+    image-orientation: from-image;
+}
+
 h2{
     margin:0px;
     text-transform: uppercase;

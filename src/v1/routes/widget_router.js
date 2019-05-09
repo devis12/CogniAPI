@@ -39,13 +39,7 @@ router.post('/upload', (req, res) => {
 router.post('/manage', (req, res) => {
     if(req.body['username'] != '') {
 
-        fetch(backendStorage + 'getImgByUser.php', {
-            method: 'POST',
-            body: '{"username": ' + '"' + req.body.username + '"}',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
+        fetch(backendStorage + 'getImgByUser.php?username='+req.body.username)
 
         .then( imgUploaded => {
             if(imgUploaded.status == 200){
@@ -78,9 +72,9 @@ router.post('/manage/singleImg', (req, res) => {
         let pImgAnn;
 
         if(process.env.NO_CACHING || req.body.cache == 'false') {//if the caching system is deactivated, you perform the analysis all over again
-            pImgAnn = cogniCombine.imagesAnn(username, imgUrls, false); //no caching because this is the first analysis after upload
+            pImgAnn = cogniCombine.imagesAnn(imgUrls, username, false); //no caching because this is the first analysis after upload
         }else{
-            pImgAnn = cogniCombine.imagesAnn(username, imgUrls, true, req.body.imgAnnb64); //no caching because this is the first analysis after upload
+            pImgAnn = cogniCombine.imagesAnn(imgUrls, username, true, req.body.imgAnnb64); //no caching because this is the first analysis after upload
         }
 
         pImgAnn.then(data => {
@@ -110,7 +104,7 @@ router.post('/upload/images', (req, res) => {
             }
         }
         let username = (req.body.username ==  undefined || req.body.username ==  '')? null : req.body.username;
-        cogniCombine.imagesAnn(username, imgUrls, false) //no caching because this is the first analysis after upload
+        cogniCombine.imagesAnn(imgUrls, username, false) //no caching because this is the first analysis after upload
             .then(data => {
                 res.render('index',
                     {
@@ -137,7 +131,7 @@ router.post('/uploadAsync/images', (req, res) => {
             }
         }
         let username = (req.body.username ==  undefined || req.body.username ==  '')? null : req.body.username;
-        cogniCombine.asyncImagesAnn(username, imgUrls, false) //no caching because this is the first analysis after upload
+        cogniCombine.asyncImagesAnn(imgUrls, username, 0.0, true)
             .then(data => {
                 res.render('index',
                     {

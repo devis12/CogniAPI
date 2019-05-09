@@ -63,22 +63,49 @@ function multipleAnalysisRemoteImage(imageUrl, loggedUser, minScore = 0.0){
                     .then(() => resolve(jsonCombineRes));
             }else
                 resolve(jsonCombineRes);
+
+
         }).catch( err_values => {
-            console.log(err_values);
+            err_values['imageUrl'] = imageUrl;
+            console.log('Rejecting ');console.log(err_values);
             reject(err_values);
         });
+
     });
 }
 
+/*  This function will reconcile the schema in a unique and standard one
+* */
+function reconciliateSchema(imageUrl, gCloudVision, azureVision, azureFace, minScore){
+    let cogniAPI = {};//add field for cogniAPI data
+
+    cogniAPI['imageUrl'] = imageUrl;
+    cogniAPI['description'] = descriptionUtilities.buildDescriptionObj(gCloudVision, azureVision);
+    cogniAPI['tags'] = descriptionUtilities.buildTagsObj(gCloudVision, azureVision, minScore);
+    cogniAPI['objects'] = descriptionUtilities.buildObjectsObj(gCloudVision, azureVision, minScore);
+    cogniAPI['landmarks'] = descriptionUtilities.buildLandmarksObj(gCloudVision, azureVision);
+    cogniAPI['texts'] = descriptionUtilities.buildTextsObj(gCloudVision, azureVision);
+    cogniAPI['webDetection'] = descriptionUtilities.buildWebDetectionObj(gCloudVision);
+
+    cogniAPI['faces'] = faceUtilities.buildFacesObj(gCloudVision['faceAnnotations'], azureFace, azureVision);
+
+    cogniAPI['safetyAnnotation'] = safetyUtilities.buildSafetyObj(gCloudVision['safeSearchAnnotation'], azureVision['adult']);
+    cogniAPI['metadata'] = azureVision['metadata'];
+    cogniAPI['graphicalData'] = colorInfoUtilities.buildColorInfoObj(gCloudVision['imagePropertiesAnnotation']['dominantColors'], azureVision['color'], azureVision['imageType']);
+
+    return cogniAPI;
+}
+
 /*  This function will help us in order to annotate the images and render the result*/
-function imagesAnn(username, imgUrls, caching, imgAnnb64){
+function imagesAnn(imgUrls, username, caching, imgAnnb64){
     return new Promise((resolve, reject) => {
+
         let promiseFaceGroup;
-        if(username != undefined && username != ''){
+        if(username != undefined && username != '' && !caching){
             //trying creating a group faces related to the logged user (if it doesn't exist)
             promiseFaceGroup = azureCompVision.createFaceGroup(username);
-        }else{
-            console.log('No user logged');
+
+        }else{// no user logged or just browsing through the cached results presented by the widget
             promiseFaceGroup = new Promise(resolve2 => resolve2(null));
         }
 
@@ -102,72 +129,214 @@ function imagesAnn(username, imgUrls, caching, imgAnnb64){
                 if(username != undefined && username != '' && !caching) {//save on the cache system on first (or later if the caching system is disabled) the retrieved data
                     encodeB64Annotation(username, data);
                 }
+
                 resolve(data);
 
-            }).catch( err_values => {
-                console.log("ImagesAnn:");
-                console.log(err_values);
-                reject(err_values);
-            });
+            }).catch( err_values => reject(err_values));
+
         });
     });
 }
 
-/*  This function will help us in order to annotate the images in an async way*/
-function asyncImagesAnn(username, imgUrls, caching){
+/*  This function will help us in order to annotate the images in an async way
+*   It's the wrapper of the actual async operation
+* */
+function asyncImagesAnn(imgUrls, username, minScore, widgetCalling){
     return new Promise(resolve => {
 
         let promiseFaceGroup;
         if(username != undefined && username != ''){
             //trying creating a group faces related to the logged user (if it doesn't exist)
             promiseFaceGroup = azureCompVision.createFaceGroup(username);
-        }else{
-            console.log('No user logged');
+
+        }else{//no user logged
             promiseFaceGroup = new Promise(resolve2 => resolve2(null));
         }
 
         promiseFaceGroup.then(() => {
-            resolve(202); //annotation process has been initiated
+            if(widgetCalling) {
+                performAsyncImagesAnn(imgUrls, username, minScore, widgetCalling);
+                resolve(202);//annotation process has been initiated by widget (no need for token)
 
-            for (let i=0; i<imgUrls.length; i++){
+            }else{//call made from api call: need to request a token to get the final result
+                // requesting token
+                requestTokenBatchAnn().then(token => {
+                    resolve(token);//202 Accepted with token
 
-                setTimeout(()=>{
-                    //for now make a combo call (azure computer vision call + gcloud vision) for each url
-                    multipleAnalysisRemoteImage(imgUrls[i], username)
-                        .then(data => {
-                            //save on the cache system on first (or later if the caching system is disabled) the retrieved data
-                            if(username != undefined && username != '' && !caching)
-                                encodeB64Annotation(username, [data]);
+                    performAsyncImagesAnn(imgUrls, username, minScore)
+
+                        .then( imgAnnotations => {
+                            encodeB64AnnotationBatch(token, imgAnnotations);
+                        })
+
+                        .catch(error => {
+                            console.log(error);
                         });
-                }, i*timeInterval);//perform calls detached at least 60-80s from one another
+
+                });
+
             }
 
         });
     });
 }
 
-/*  This function will reconcile the schema in a unique and standard one
+/*  This function will help us in order to annotate the images in an async way*/
+function performAsyncImagesAnn(imgUrls, username, minScore, widgetCalling){
+    return new Promise((resolve, reject) => {
+
+        let annPromises = [];
+        let imgAnnotations = [];
+
+        for (let i=0; i<imgUrls.length; i++){
+
+            setTimeout(()=>{
+                //for now make a combo call (azure computer vision call + gcloud vision) for each url
+                annPromises.push( new Promise(resolve2 => {
+                    multipleAnalysisRemoteImage(imgUrls[i], username, minScore)
+
+                        .then(data => {
+                            imgAnnotations.push(data);
+                            resolve2(data);
+                            //save on the cache system on first (or later if the caching system is disabled) the retrieved data
+                            if(username != undefined && username != '' && widgetCalling)
+                                encodeB64Annotation(username, [data]);
+                        })
+
+                        .catch(dataErr => {
+                            console.log('Annotation process in async operations has gone into error:');
+                            console.log(dataErr);
+                            imgAnnotations.push(dataErr);
+                            resolve2(dataErr);
+                        });
+                }));
+
+            }, i*timeInterval);//perform calls detached at least 60-80s from one another
+        }
+
+        //when all the annotations have been performed
+        setTimeout(() => {
+            Promise.all(annPromises)
+                .then(() => resolve(imgAnnotations))
+
+        }, imgUrls.length * timeInterval);
+
+
+    });
+}
+
+/*  This function will call the db management service to get a token which will allow to store the final
+    results where all the annotations will be performed
+ *  */
+function requestTokenBatchAnn(){
+    return new Promise(resolve => {
+        let date = new Date();
+        let d = date.getDate();
+        if(+d < 10)
+            d = '0' + d;
+        let h = date.getHours();
+        if(+h < 10)
+            h = '0' + h;
+
+        let secret = d + 'cogni' + h;
+        //console.log('Requesting token to ' + backendStorage + 'getTokenBatchAnn.php?secret=' + secret );
+        fetch(backendStorage + 'getTokenBatchAnn.php?secret=' + secret)
+            .then(php_response => {
+                php_response.json().then(php_JSONresp =>{
+                    //console.log('Received from the server the following json obj for token');
+                    //console.log(php_JSONresp);
+                    resolve(php_JSONresp['btoken']);
+                });
+            });
+    });
+}
+
+
+/*  This function will call the db management service to get the result json object
+    of a batch annotation given the token related to it.
+    FilterOn will eventually decide on which attributes you want to focus your analysis,
+        - if null it'll just return the whole annotations
+        - if it has a value, it could be something like 'faces', 'objects' and so on...
+ *  */
+function getBatchAnn(token, filterOn){
+    return new Promise((resolve, reject) => {
+
+        //console.log('Requesting with token ' + token + ' the batch annotation results');
+        fetch(backendStorage + 'getBatchAnn.php?btoken=' + token)
+            .then(php_response => {
+                php_response.json().then(php_JSONresp =>{
+
+                    if(php_JSONresp['json_b64']) {
+                        //console.log('Received from the server the following json obj for token');
+                        let imgAnnotations = JSON.parse(Buffer.from(php_JSONresp['json_b64'], 'base64').toString());
+                        //console.log(imgAnnotations);
+
+                        if(filterOn)
+                            resolve(batchAnnFilterOn(imgAnnotations, filterOn));
+                        else
+                            resolve(imgAnnotations);
+
+                    }else if(php_JSONresp['notReady'] && +php_JSONresp['notReady'] == 204) {
+                        //console.log('Analysis has not been completed yet');
+                        reject({err_status: 204});
+
+                    }else
+                        reject({err_status: 404, err_msg: 'Bad or Broken token: there is no results related to it', err_code: 'Not Found'});
+                });
+            });
+    });
+}
+
+/*  FilterOn will decide on which attributes you want to focus your analysis:
+    it could be something like 'faces', 'objects' and so on...
 * */
-function reconciliateSchema(imageUrl, gCloudVision, azureVision, azureFace, minScore){
-    let cogniAPI = {};//add field for cogniAPI data
+function batchAnnFilterOn(imgAnnotations, filterOn){
+    if(imgAnnotations && Array.isArray(imgAnnotations)){
+        if(filterOn){
 
-    cogniAPI['imageUrl'] = imageUrl;
-    cogniAPI['description'] = descriptionUtilities.buildDescriptionObj(gCloudVision, azureVision);
-    cogniAPI['tags'] = descriptionUtilities.buildTagsObj(gCloudVision, azureVision, minScore);
-    cogniAPI['objects'] = descriptionUtilities.buildObjectsObj(gCloudVision, azureVision, minScore);
-    cogniAPI['landmarks'] = descriptionUtilities.buildLandmarksObj(gCloudVision, azureVision);
-    cogniAPI['texts'] = descriptionUtilities.buildTextsObj(gCloudVision, azureVision);
-    cogniAPI['webDetection'] = descriptionUtilities.buildWebDetectionObj(gCloudVision);
+            let finalResults = [];
+            for(let imgAnn of imgAnnotations) {
+                let cogniImgAnn = {imageUrl: imgAnn['imageUrl']};
+                cogniImgAnn[filterOn] = imgAnn[filterOn];
+                finalResults.push(cogniImgAnn);
+            }
 
-    cogniAPI['faces'] = faceUtilities.buildFacesObj(gCloudVision['faceAnnotations'], azureFace, azureVision);
+            return finalResults;
 
-    cogniAPI['safetyAnnotation'] = safetyUtilities.buildSafetyObj(gCloudVision['safeSearchAnnotation'], azureVision['adult']);
-    cogniAPI['metadata'] = azureVision['metadata'];
-    cogniAPI['graphicalData'] = colorInfoUtilities.buildColorInfoObj(gCloudVision['imagePropertiesAnnotation']['dominantColors'], azureVision['color'], azureVision['imageType']);
+        }else
 
+            return imgAnnotations;
 
 
-    return cogniAPI;
+    }else
+        return {};
+}
+
+/*  This function will help us in order to store the answer elaborated from the api
+    encoding it in base 64 for future development & analysis (a sort of caching system. necessary for batch analysis)
+* */
+function encodeB64AnnotationBatch(token, imgAnnotations){
+    let cogniImgAnnotations = [];
+    for(let imgAnn of imgAnnotations)
+        cogniImgAnnotations.push(imgAnn['cogniAPI']);
+
+    console.log('loading to cognidb the following json (token = ' + token + ')');
+    console.log(cogniImgAnnotations);
+
+    let bodyReq = {
+        'btoken': token,
+        'data64': Buffer.from(JSON.stringify(cogniImgAnnotations)).toString('base64')
+    };
+
+    fetch(backendStorage + 'updateBatchAnn.php', {
+        method: 'POST',
+        body: JSON.stringify(bodyReq),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    }).then(php_response => {
+        console.log('PHP response: ');console.log(php_response);
+    });
 }
 
 /*  This function will help us in order to store the answer elaborated from the api
@@ -204,4 +373,4 @@ function encodeB64Annotation(username, imgAnnotations){
 }
 
 
-module.exports = {multipleAnalysisRemoteImage, imagesAnn, asyncImagesAnn};
+module.exports = {multipleAnalysisRemoteImage, imagesAnn, asyncImagesAnn, getBatchAnn};

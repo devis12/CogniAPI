@@ -105,6 +105,7 @@ function analyseRemoteImageCogniSchema(imageUrl, loggedUser, minScore){
             })
             .catch(err_values => {
                console.log(err_values);
+               err_values['imageUrl'] = imageUrl;
                reject(err_values);
             });
 
@@ -421,7 +422,7 @@ function trainFaceGroup(loggedUser){
                     reject({err_status: res.status});
                 else{
                     console.log('Face group training phase started correctly for user ' + loggedUser);
-                    resolve(200); // face group created with no problem
+                    resolve(202); // face group created with no problem
                 }
 
             }).catch(e => reject(e));
@@ -434,6 +435,9 @@ function trainFaceGroup(loggedUser){
     recognized inside the image. The match will be found inside the group faces related
     to the logged user and will be associated with the info the user has supplied in the
     first place
+
+    IMPORTANT IF THE USER DOESN'T EXIST, but there is a username prompted, the face group related
+    to this user will be created at this point
 */
 function findSimilar(loggedUser, cogniFaces){
     let groupName = (loggedUser + faceGroupSuffix).toLowerCase();//fix bug azure largelistface id
@@ -464,7 +468,11 @@ function findSimilar(loggedUser, cogniFaces){
                         });
                     });
 
-            }else{
+            }else if(trainingStatus.error && trainingStatus.error.code == 'LargeFaceListNotFound' && loggedUser != ''){ // create new face group list
+                createFaceGroup(loggedUser);
+                resolve(cogniFaces);
+
+            }else{ // facelist group not trained... you can't perform analysis in order to find similar faces
 
                 resolve(cogniFaces);
             }

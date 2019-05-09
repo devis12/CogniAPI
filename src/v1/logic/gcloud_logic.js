@@ -102,6 +102,7 @@ function analyseRemoteImageCogniSchema(imageUrl, minScore){
             })
             .catch( errValue => {
                console.log(errValue);
+                errValue['imageUrl'] = imageUrl;
                reject(errValue);
             });
     });
