@@ -1,5 +1,9 @@
 <?php
-    /*Random string generator functions */
+    /*  Random string generator functions 
+        Params:
+            @length length of the random string to be generated
+            @filename bool value indicating if the string is a filename
+    */
     function generateRandomString($length = 50) {
         $characters = '0123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKMNOPQRSTUVWXYZ';
         $charactersLength = strlen($characters);

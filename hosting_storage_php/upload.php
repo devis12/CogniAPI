@@ -33,7 +33,7 @@
 
     }else {
         
-        if ($stmt = $link->prepare("DELETE FROM last_token WHERE token = ? AND deadline > NOW()")) {
+        if ($stmt = $link->prepare("DELETE FROM widget_auth_token WHERE token = ? AND deadline > NOW()")) {
             $stmt->bind_param("s", $_POST['secret']);
 
             $stmt->execute();
@@ -66,7 +66,7 @@
             //Make sure we have a file path
             if ($tmpFilePath != ""){
                 //Setup our new file path
-                $ext = substr($_FILES['file'.$i]['name'],strpos($_FILES['file'.$i]['name'],'.') + 1);//file extensions
+                $ext = substr($_FILES['file'.$i]['name'], strripos($_FILES['file'.$i]['name'],'.') + 1);//file extensions
                 
                 if($ext == "JPG" || $ext == "jpg" || $ext == "JPEG" || $ext == "jpeg" || $ext == "png"){//upload just jpg or png
                         
@@ -85,14 +85,6 @@
                               $stmt->bind_param("ss", $newFilePath, $_POST['username']);
 
                               $stmt->execute();
-
-                              if($stmt->affected_rows < 0){
-                                http_response_code(403);
-                                echo "Invalid token!";
-                                $stmt->close();
-                                $link->close();
-                                die();
-                              }
 
                               $stmt->close();
 

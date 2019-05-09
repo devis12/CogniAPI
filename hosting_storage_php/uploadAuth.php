@@ -24,7 +24,7 @@
             $time = new DateTime('NOW');
             $time->add(new DateInterval('PT' . $minutes_to_add . 'M'));
             $datetime = $time->format('Y-m-d H:i:s');
-            if ($stmt = $link->prepare("INSERT INTO last_token(token, deadline) VALUES(?,?)")) {
+            if ($stmt = $link->prepare("INSERT INTO widget_auth_token(token, deadline) VALUES(?,?)")) {
                 $stmt->bind_param("ss", $secret, $datetime);
 
                 $stmt->execute();
