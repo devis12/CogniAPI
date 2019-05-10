@@ -21,9 +21,9 @@ router.get('/analyse', (req, res) => {
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl, loggedUser, minScore)
             .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -33,10 +33,14 @@ router.get('/analyse/faces', (req, res) => {
     let loggedUser = req.query.user;
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl, loggedUser)
-            .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.faces))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn.cogniAPI['imageUrl'],
+                responseStatus: jsonAnn.cogniAPI['responseStatus'],
+                faces: jsonAnn.cogniAPI.faces
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -49,10 +53,14 @@ router.get('/analyse/tags', (req, res) => {
 
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl, null, minScore)
-            .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.tags))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn.cogniAPI['imageUrl'],
+                responseStatus: jsonAnn.cogniAPI['responseStatus'],
+                tags: jsonAnn.cogniAPI.tags
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -62,10 +70,14 @@ router.get('/analyse/description', (req, res) => {
 
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl)
-            .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.description))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn.cogniAPI['imageUrl'],
+                responseStatus: jsonAnn.cogniAPI['responseStatus'],
+                description: jsonAnn.cogniAPI.description
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -78,10 +90,14 @@ router.get('/analyse/objects', (req, res) => {
 
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl, null, minScore)
-            .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.objects))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn.cogniAPI['imageUrl'],
+                responseStatus: jsonAnn.cogniAPI['responseStatus'],
+                objects: jsonAnn.cogniAPI.objects
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -90,10 +106,14 @@ router.get('/analyse/texts', (req, res) => {
     let imgUrl = req.query.url;
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl)
-            .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.texts))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn.cogniAPI['imageUrl'],
+                responseStatus: jsonAnn.cogniAPI['responseStatus'],
+                texts: jsonAnn.cogniAPI.texts
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -102,10 +122,14 @@ router.get('/analyse/landmarks', (req, res) => {
     let imgUrl = req.query.url;
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl)
-            .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.landmarks))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn.cogniAPI['imageUrl'],
+                responseStatus: jsonAnn.cogniAPI['responseStatus'],
+                landmarks: jsonAnn.cogniAPI.landmarks
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -114,10 +138,14 @@ router.get('/analyse/safety', (req, res) => {
     let imgUrl = req.query.url;
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl)
-            .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.safetyAnnotation))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn.cogniAPI['imageUrl'],
+                responseStatus: jsonAnn.cogniAPI['responseStatus'],
+                safetyAnnotations: jsonAnn.cogniAPI.safetyAnnotations
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -126,10 +154,14 @@ router.get('/analyse/colors', (req, res) => {
     let imgUrl = req.query.url;
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl)
-            .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.graphicalData))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn.cogniAPI['imageUrl'],
+                responseStatus: jsonAnn.cogniAPI['responseStatus'],
+                graphicalData: jsonAnn.cogniAPI.graphicalData
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -138,10 +170,14 @@ router.get('/analyse/web', (req, res) => {
     let imgUrl = req.query.url;
     if(imgUrl){
         cogniCombine.multipleAnalysisRemoteImage(imgUrl)
-            .then( jsonAnn => res.status(200).json(jsonAnn.cogniAPI.webDetection))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn.cogniAPI['imageUrl'],
+                responseStatus: jsonAnn.cogniAPI['responseStatus'],
+                webDetection: jsonAnn.cogniAPI.webDetection
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'url parameter is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 

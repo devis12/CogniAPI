@@ -23,11 +23,9 @@ router.get('/gcloud/analyse', (req, res) => {
             .then(data => {
                 res.status(200).json(data);
             })
-            .catch(e => res.status((e.err_status) ? e.err_status : 500).json(e));
-
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
-
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -37,14 +35,14 @@ router.get('/gcloud/faces', (req, res) => {
 
     if(imgUrl) {
         googleLogic.analyseRemoteImageCogniSchema(imgUrl)
-            .then( data => {
-                res.status(200).json(data.faces);
-            })
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
-
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn['imageUrl'],
+                responseStatus: jsonAnn['responseStatus'],
+                faces: jsonAnn.faces
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
-
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -54,14 +52,14 @@ router.get('/gcloud/tags', (req, res) => {
 
     if(imgUrl) {
         googleLogic.analyseRemoteImageCogniSchema(imgUrl)
-            .then(data => {
-                res.status(200).json(data.tags);
-            })
-            .catch(e => res.status((e.err_status) ? e.err_status : 500).json(e));
-
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn['imageUrl'],
+                responseStatus: jsonAnn['responseStatus'],
+                tags: jsonAnn.tags
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
-
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -71,14 +69,14 @@ router.get('/gcloud/objects', (req, res) => {
 
     if(imgUrl) {
         googleLogic.analyseRemoteImageCogniSchema(imgUrl)
-            .then(data => {
-                res.status(200).json(data.objects);
-            })
-            .catch(e => res.status((e.err_status) ? e.err_status : 500).json(e));
-
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn['imageUrl'],
+                responseStatus: jsonAnn['responseStatus'],
+                objects: jsonAnn.objects
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
-
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -88,14 +86,14 @@ router.get('/gcloud/description', (req, res) => {
 
     if(imgUrl) {
         googleLogic.analyseRemoteImageCogniSchema(imgUrl)
-            .then(data => {
-                res.status(200).json(data.description);
-            })
-            .catch(e => res.status((e.err_status) ? e.err_status : 500).json(e));
-
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn['imageUrl'],
+                responseStatus: jsonAnn['responseStatus'],
+                description: jsonAnn.description
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
-
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -105,14 +103,14 @@ router.get('/gcloud/texts', (req, res) => {
 
     if(imgUrl) {
         googleLogic.analyseRemoteImageCogniSchema(imgUrl)
-            .then(data => {
-                res.status(200).json(data.texts);
-            })
-            .catch(e => res.status((e.err_status) ? e.err_status : 500).json(e));
-
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn['imageUrl'],
+                responseStatus: jsonAnn['responseStatus'],
+                texts: jsonAnn.texts
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
-
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -122,14 +120,14 @@ router.get('/gcloud/landmarks', (req, res) => {
 
     if(imgUrl) {
         googleLogic.analyseRemoteImageCogniSchema(imgUrl)
-            .then(data => {
-                res.status(200).json(data.landmarks);
-            })
-            .catch(e => res.status((e.err_status) ? e.err_status : 500).json(e));
-
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn['imageUrl'],
+                responseStatus: jsonAnn['responseStatus'],
+                landmarks: jsonAnn.landmarks
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
-
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -139,14 +137,14 @@ router.get('/gcloud/safety', (req, res) => {
 
     if(imgUrl) {
         googleLogic.analyseRemoteImageCogniSchema(imgUrl)
-            .then(data => {
-                res.status(200).json(data.safetyAnnotation);
-            })
-            .catch(e => res.status((e.err_status) ? e.err_status : 500).json(e));
-
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn['imageUrl'],
+                responseStatus: jsonAnn['responseStatus'],
+                safetyAnnotations: jsonAnn.safetyAnnotations
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
-
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -156,14 +154,14 @@ router.get('/gcloud/colors', (req, res) => {
 
     if(imgUrl) {
         googleLogic.analyseRemoteImageCogniSchema(imgUrl)
-            .then(data => {
-                res.status(200).json(data.graphicalData);
-            })
-            .catch(e => res.status((e.err_status) ? e.err_status : 500).json(e));
-
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn['imageUrl'],
+                responseStatus: jsonAnn['responseStatus'],
+                graphicalData: jsonAnn.graphicalData
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
-
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -173,14 +171,14 @@ router.get('/gcloud/web', (req, res) => {
 
     if(imgUrl) {
         googleLogic.analyseRemoteImageCogniSchema(imgUrl)
-            .then(data => {
-                res.status(200).json(data.webDetection);
-            })
-            .catch(e => res.status((e.err_status) ? e.err_status : 500).json(e));
-
+            .then( jsonAnn => res.status(200).json({
+                imageUrl: jsonAnn['imageUrl'],
+                responseStatus: jsonAnn['responseStatus'],
+                webDetection: jsonAnn.webDetection
+            }))
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Invalid Data', err_code: 'Bad Request'});
-
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 

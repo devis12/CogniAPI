@@ -66,11 +66,14 @@ function analyseRemoteImage(imageUrl, visualFeatures){
 
                     res.json().then(resErr =>
                         reject({
-                            err_status: res.status,
-                            err_msg: resErr.message,
-                            err_code: resErr.code
+                            responseStatus: {
+                                status: res.status,
+                                msg: resErr.message,
+                                code: resErr.code
+                            }
                         })
                     );
+
                 }else
                     res.json().then(json => resolve(json)).catch(e => reject(e));
 
@@ -125,9 +128,15 @@ function reconciliateSchemaAzure(imageUrl, azureCV, azureFaces, minScore){
 
     cogniAPI['faces'] = faceUtilities.buildFacesObj(null, azureFaces, azureCV);
 
-    cogniAPI['safetyAnnotation'] = safetyUtilities.buildSafetyObj(null, azureCV['adult']);
+    cogniAPI['safetyAnnotations'] = safetyUtilities.buildSafetyObj(null, azureCV['adult']);
     cogniAPI['metadata'] = azureCV['metadata'];
     cogniAPI['graphicalData'] = colorInfoUtilities.buildColorInfoObj(null, azureCV['color'], azureCV['imageType']);
+
+    cogniAPI['responseStatus'] = {
+        status: 200,
+        code: 'OK',
+        msg: 'Analysis has been successfully performed'
+    };
 
     return cogniAPI;
 }
@@ -175,10 +184,11 @@ function faceRemoteImage(imageUrl){
                 if(!res.ok){//res.status<200 || res.status >=300
                     res.json().then(resErr =>
                         reject({
-                            err_status: res.status,
-                            err_msg: resErr.message,
-                            err_code: resErr.code
-                        })
+                            responseStatus: {
+                                status: res.status,
+                                msg: resErr.message,
+                                code: resErr.code
+                            }})
                     );
                 }else
                     res.json().then(json => resolve(json)).catch(e => reject(e));
@@ -215,7 +225,7 @@ function createFaceGroup(loggedUser){
                     console.log('Face group already exist for user ' + loggedUser);
                     resolve(null);
                 }else if(!res.ok)//res.status<200 || res.status >=300
-                    reject({err_status: res.status});
+                    reject({responseStatus:{status: res.status}});
                 else{
                     console.log('Face group instantiated correctly for user ' + loggedUser);
                     resolve(200); // face group created with no problem
@@ -256,7 +266,7 @@ function addToFaceGroup(imageUrl, target, userData, loggedUser){
         })
             .then(res => {
                 if(!res.ok)//res.status<200 || res.status >=300
-                    reject({err_status: res.status});
+                    reject({responseStatus:{status: res.status}});
                 else{
                     console.log('Added face correctly for user ' + loggedUser + ' on azure face list');
 
@@ -313,7 +323,7 @@ function patchFace(persistedFaceId, userData, loggedUser){
             })
                 .then(res => {
                     if(!res.ok)//res.status<200 || res.status >=300
-                        reject({err_status: res.status});
+                        reject({responseStatus:{status: res.status}});
                     else{
                         console.log('Patched face correctly for user ' + loggedUser);
                         resolve(200); // face patched in face group
@@ -365,7 +375,7 @@ function forgetFace(persistedFaceId, loggedUser){
         })
             .then(res => {
                 if(!res.ok)//res.status<200 || res.status >=300
-                    reject({err_status: res.status});
+                    reject({responseStatus:{status: res.status}});
                 else{
                     console.log('Delete persisted face correctly for user ' + loggedUser);
                     if(!userDataStoredOnAzure){// face user data will be deleted also from our db
@@ -419,7 +429,7 @@ function trainFaceGroup(loggedUser){
         })
             .then(res => {
                 if(!res.ok)//res.status<200 || res.status >=300
-                    reject({err_status: res.status});
+                    reject({responseStatus:{status: res.status}});
                 else{
                     console.log('Face group training phase started correctly for user ' + loggedUser);
                     resolve(202); // face group created with no problem

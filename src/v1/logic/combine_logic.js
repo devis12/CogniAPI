@@ -89,9 +89,15 @@ function reconciliateSchema(imageUrl, gCloudVision, azureVision, azureFace, minS
 
     cogniAPI['faces'] = faceUtilities.buildFacesObj(gCloudVision['faceAnnotations'], azureFace, azureVision);
 
-    cogniAPI['safetyAnnotation'] = safetyUtilities.buildSafetyObj(gCloudVision['safeSearchAnnotation'], azureVision['adult']);
+    cogniAPI['safetyAnnotations'] = safetyUtilities.buildSafetyObj(gCloudVision['safeSearchAnnotation'], azureVision['adult']);
     cogniAPI['metadata'] = azureVision['metadata'];
     cogniAPI['graphicalData'] = colorInfoUtilities.buildColorInfoObj(gCloudVision['imagePropertiesAnnotation']['dominantColors'], azureVision['color'], azureVision['imageType']);
+
+    cogniAPI['responseStatus'] = {
+        status: 200,
+        code: 'OK',
+        msg: 'Analysis has been successfully performed'
+    };
 
     return cogniAPI;
 }
@@ -278,10 +284,16 @@ function getBatchAnn(token, filterOn){
 
                     }else if(php_JSONresp['notReady'] && +php_JSONresp['notReady'] == 204) {
                         //console.log('Analysis has not been completed yet');
-                        reject({err_status: 204});
+                        reject({responseStatus:{status: 204}});
 
                     }else
-                        reject({err_status: 404, err_msg: 'Bad or Broken token: there is no results related to it', err_code: 'Not Found'});
+                        reject(
+                            {   responseStatus: {
+                                    status: 404,
+                                    msg: 'Bad or Broken token: there is no results related to it',
+                                    code: 'Not Found'
+                                }
+                            });
                 });
             });
     });
@@ -296,7 +308,10 @@ function batchAnnFilterOn(imgAnnotations, filterOn){
 
             let finalResults = [];
             for(let imgAnn of imgAnnotations) {
-                let cogniImgAnn = {imageUrl: imgAnn['imageUrl']};
+                let cogniImgAnn = {
+                    imageUrl: imgAnn['imageUrl'],
+                    responseStatus: imgAnn['responseStatus']
+                };
                 cogniImgAnn[filterOn] = imgAnn[filterOn];
                 finalResults.push(cogniImgAnn);
             }
@@ -317,11 +332,22 @@ function batchAnnFilterOn(imgAnnotations, filterOn){
 * */
 function encodeB64AnnotationBatch(token, imgAnnotations){
     let cogniImgAnnotations = [];
-    for(let imgAnn of imgAnnotations)
-        cogniImgAnnotations.push(imgAnn['cogniAPI']);
 
-    console.log('loading to cognidb the following json (token = ' + token + ')');
-    console.log(cogniImgAnnotations);
+    for(let imgAnn of imgAnnotations) {
+
+        if(imgAnn['cogniAPI'])
+            cogniImgAnnotations.push(imgAnn['cogniAPI']);
+
+        else//annotation has gone into error
+            cogniImgAnnotations.push({
+                imageUrl: imgAnn['imageUrl'],
+                responseStatus:  imgAnn['responseStatus']
+            });
+
+    }
+
+    //console.log('loading to cognidb the following json (token = ' + token + ')');
+    //console.log(cogniImgAnnotations);
 
     let bodyReq = {
         'btoken': token,
@@ -335,7 +361,7 @@ function encodeB64AnnotationBatch(token, imgAnnotations){
             'Content-Type': 'application/json'
         }
     }).then(php_response => {
-        console.log('PHP response: ');console.log(php_response);
+        //console.log('PHP response: ');console.log(php_response);
     });
 }
 

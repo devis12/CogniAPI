@@ -16,13 +16,20 @@ router.get('/status', (req, res) => {
     statusLogic.hello()
         .then( data => {
             res.status(200).json({
-                msg: data
+                responseStatus: {
+                    status: 200,
+                    code: 'OK',
+                    msg: 'Server up & Running'
+                }
             });
         })
         .catch(e => {
-           rres.status(500).json({
-               err_msg: '' + e
-           });
+            res.status(500).json({
+                responseStatus: {
+                    status: 500,
+                    code: 'Internal Server Error'
+                }
+            });
         });
 });
 

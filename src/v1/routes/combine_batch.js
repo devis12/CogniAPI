@@ -22,9 +22,9 @@ router.post('/analyse/batch', (req, res) => {
     if(imgUrls && Array.isArray(imgUrls) && imgUrls.length > 0){
         cogniCombine.asyncImagesAnn(imgUrls, loggedUser, minScore, false)
             .then( token => res.status(202).json({'btoken': token}))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'urls parameter is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
     }
 });
 
@@ -35,9 +35,9 @@ router.get('/analyse/batch/:token', (req, res) => {
     if(btoken){
         cogniCombine.getBatchAnn(btoken)
             .then( batchResults => res.status(200).json(batchResults))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Token is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'Token is missing', code: 'Bad Request'}});
     }
 });
 
@@ -48,9 +48,9 @@ router.get('/analyse/batch/:token/faces', (req, res) => {
     if(btoken){
         cogniCombine.getBatchAnn(btoken, 'faces')
             .then( batchResults => res.status(200).json(batchResults))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Token is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'Token is missing', code: 'Bad Request'}});
     }
 });
 
@@ -61,9 +61,9 @@ router.get('/analyse/batch/:token/tags', (req, res) => {
     if(btoken){
         cogniCombine.getBatchAnn(btoken, 'tags')
             .then( batchResults => res.status(200).json(batchResults))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Token is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'Token is missing', code: 'Bad Request'}});
     }
 });
 
@@ -74,9 +74,9 @@ router.get('/analyse/batch/:token/objects', (req, res) => {
     if(btoken){
         cogniCombine.getBatchAnn(btoken, 'objects')
             .then( batchResults => res.status(200).json(batchResults))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Token is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'Token is missing', code: 'Bad Request'}});
     }
 });
 
@@ -87,9 +87,9 @@ router.get('/analyse/batch/:token/description', (req, res) => {
     if(btoken){
         cogniCombine.getBatchAnn(btoken, 'description')
             .then( batchResults => res.status(200).json(batchResults))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Token is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'Token is missing', code: 'Bad Request'}});
     }
 });
 
@@ -100,9 +100,9 @@ router.get('/analyse/batch/:token/texts', (req, res) => {
     if(btoken){
         cogniCombine.getBatchAnn(btoken, 'texts')
             .then( batchResults => res.status(200).json(batchResults))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Token is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'Token is missing', code: 'Bad Request'}});
     }
 });
 
@@ -113,9 +113,9 @@ router.get('/analyse/batch/:token/landmarks', (req, res) => {
     if(btoken){
         cogniCombine.getBatchAnn(btoken, 'landmarks')
             .then( batchResults => res.status(200).json(batchResults))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Token is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'Token is missing', code: 'Bad Request'}});
     }
 });
 
@@ -126,9 +126,9 @@ router.get('/analyse/batch/:token/safety', (req, res) => {
     if(btoken){
         cogniCombine.getBatchAnn(btoken, 'safetyAnnotation')
             .then( batchResults => res.status(200).json(batchResults))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Token is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'Token is missing', code: 'Bad Request'}});
     }
 });
 
@@ -139,9 +139,9 @@ router.get('/analyse/batch/:token/colors', (req, res) => {
     if(btoken){
         cogniCombine.getBatchAnn(btoken, 'graphicalData')
             .then( batchResults => res.status(200).json(batchResults))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Token is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'Token is missing', code: 'Bad Request'}});
     }
 });
 
@@ -152,9 +152,9 @@ router.get('/analyse/batch/:token/web', (req, res) => {
     if(btoken){
         cogniCombine.getBatchAnn(btoken, 'webDetection')
             .then( batchResults => res.status(200).json(batchResults))
-            .catch(e => res.status((e.err_status)? e.err_status:500).json(e));
+            .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
-        res.status(400).json({err_status: 400, err_msg: 'Token is missing', err_code: 'Bad Request'});
+        res.status(400).json({responseStatus:{status: 400, msg: 'Token is missing', code: 'Bad Request'}});
     }
 });
 

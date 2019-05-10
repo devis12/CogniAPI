@@ -61,9 +61,19 @@ function analyseRemoteImage(imageUrl, customFeatures){
                     });
             }).catch( errRequest => {
                 if(errRequest.error && errRequest.error.code == 'ENOTFOUND')
-                    reject({err_status: 404, err_code: 'Not Found'});
+                    reject({
+                        responseStatus: {
+                            status: 404,
+                            code: 'Not Found'
+                        }
+                    });
                 else
-                    reject({err_status: 400, err_code: 'Bad Request'});
+                    reject({
+                        responseStatus: {
+                            status: 400,
+                            code: 'Bad request'
+                        }
+                    });
             });
         }else{
             client
@@ -101,9 +111,9 @@ function analyseRemoteImageCogniSchema(imageUrl, minScore){
 
             })
             .catch( errValue => {
-               console.log(errValue);
+                console.log(errValue);
                 errValue['imageUrl'] = imageUrl;
-               reject(errValue);
+                reject(errValue);
             });
     });
 }
@@ -123,10 +133,15 @@ function reconciliateSchemaGCloud(imageUrl, gCloudVision, minScore){
 
     cogniAPI['faces'] = faceUtilities.buildFacesObj(gCloudVision['faceAnnotations']);
 
-    cogniAPI['safetyAnnotation'] = safetyUtilities.buildSafetyObj(gCloudVision['safeSearchAnnotation']);
+    cogniAPI['safetyAnnotations'] = safetyUtilities.buildSafetyObj(gCloudVision['safeSearchAnnotation']);
     cogniAPI['metadata'] = gCloudVision['metadata'];
     cogniAPI['graphicalData'] = colorInfoUtilities.buildColorInfoObj(gCloudVision['imagePropertiesAnnotation']['dominantColors']);
 
+    cogniAPI['responseStatus'] = {
+        status: 200,
+        code: 'OK',
+        msg: 'Analysis has been successfully performed'
+    };
 
     return cogniAPI;
 }
