@@ -34,7 +34,20 @@ router.get('/analyse/batch/:token', (req, res) => {
 
     if(btoken){
         cogniCombine.getBatchAnn(btoken)
-            .then( batchResults => res.status(200).json(batchResults))
+            .then( batchResults => {
+                let batchResultsFiltered;
+                let emotion = req.query.emotion;
+                if(emotion){ // filter by emotion
+                    let emotionScore = Number.parseFloat(req.query.emotionscore); //threshold
+                    if(Number.isNaN(emotionScore) || emotionScore < 0 || emotionScore > 1)
+                        emotionScore = 0.75;//with invalid input or without the param just keep 0.75 as default
+
+                    batchResultsFiltered = cogniCombine.batchAnnFilterOnEmotion(batchResults, emotion, emotionScore);
+                    res.status(200).json(batchResultsFiltered);
+
+                }else
+                    res.status(200).json(batchResults);
+            })
             .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
         res.status(400).json({responseStatus:{status: 400, msg: 'Token is missing', code: 'Bad Request'}});
@@ -47,7 +60,20 @@ router.get('/analyse/batch/:token/faces', (req, res) => {
 
     if(btoken){
         cogniCombine.getBatchAnn(btoken, 'faces')
-            .then( batchResults => res.status(200).json(batchResults))
+            .then( batchResults => {
+                let batchResultsFiltered;
+                let emotion = req.query.emotion;
+                if(emotion){ // filter by emotion
+                    let emotionScore = Number.parseFloat(req.query.emotionscore); //threshold
+                    if(Number.isNaN(emotionScore) || emotionScore < 0 || emotionScore > 1)
+                        emotionScore = 0.75;//with invalid input or without the param just keep 0.75 as default
+
+                    batchResultsFiltered = cogniCombine.batchAnnFilterOnEmotion(batchResults, emotion, emotionScore);
+                    res.status(200).json(batchResultsFiltered);
+
+                }else
+                    res.status(200).json(batchResults);
+            })
             .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
         res.status(400).json({responseStatus:{status: 400, msg: 'Token is missing', code: 'Bad Request'}});

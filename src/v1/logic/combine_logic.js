@@ -327,6 +327,57 @@ function batchAnnFilterOn(imgAnnotations, filterOn){
         return {};
 }
 
+/*  FilterOn will decide on which attributes you want to focus your analysis:
+    it could be something like 'faces', 'objects' and so on...
+* */
+function batchAnnFilterOn(imgAnnotations, filterOn){
+    if(imgAnnotations && Array.isArray(imgAnnotations)){
+        if(filterOn){
+
+            let finalResults = [];
+            for(let imgAnn of imgAnnotations) {
+                let cogniImgAnn = {
+                    imageUrl: imgAnn['imageUrl'],
+                    responseStatus: imgAnn['responseStatus']
+                };
+                cogniImgAnn[filterOn] = imgAnn[filterOn];
+                finalResults.push(cogniImgAnn);
+            }
+
+            return finalResults;
+
+        }else
+
+            return imgAnnotations;
+
+
+    }else
+        return {};
+}
+
+/*  FilterOnEmotion will decide which annotations to filter out based on the pass emotion
+    and a given threshold emotionscore
+* */
+function batchAnnFilterOnEmotion(imgAnnotations, emotion, emotionScore){
+    let imgAnnotationsFiltered = [];
+
+    for(let imgAnn of imgAnnotations) {
+        if(imgAnn.faces && Array.isArray(imgAnn.faces) && imgAnn.faces.length > 0){
+            for(let face of imgAnn.faces){
+                if( face.emotions && face.emotions[emotion] &&
+                    face.emotions[emotion]['confidence'] > emotionScore){
+                    imgAnnotationsFiltered.push(imgAnn);
+                    break; // exit from the cycle and go the next imgAnn, because you found at least a face which matches the requested emotion
+                }
+            }
+        }
+
+    }
+
+    return imgAnnotationsFiltered;
+
+}
+
 /*  This function will help us in order to store the answer elaborated from the api
     encoding it in base 64 for future development & analysis (a sort of caching system. necessary for batch analysis)
 * */
@@ -399,4 +450,4 @@ function encodeB64Annotation(username, imgAnnotations){
 }
 
 
-module.exports = {multipleAnalysisRemoteImage, imagesAnn, asyncImagesAnn, getBatchAnn};
+module.exports = {multipleAnalysisRemoteImage, imagesAnn, asyncImagesAnn, getBatchAnn, batchAnnFilterOnEmotion};
