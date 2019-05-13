@@ -266,7 +266,7 @@ function batchFacesRecognition(cogniImgAnnotations){
  *  */
 function requestTokenBatchAnn(){
     return new Promise(resolve => {
-        let date = new Date();
+        let date = new Date(new Date().toLocaleString("it-IT", {timeZone: "Europe/Rome"}));
         let d = date.getDate();
         if(+d < 10)
             d = '0' + d;

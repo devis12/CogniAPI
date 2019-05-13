@@ -21,7 +21,7 @@
             $secret = generateRandomString();
             
             $minutes_to_add = 5;
-            $time = new DateTime('NOW');
+            $time = new DateTime('now', new DateTimezone('Europe/Rome'));
             $time->add(new DateInterval('PT' . $minutes_to_add . 'M'));
             $datetime = $time->format('Y-m-d H:i:s');
             if ($stmt = $link->prepare("INSERT INTO widget_auth_token(token, deadline) VALUES(?,?)")) {

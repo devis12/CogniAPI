@@ -28,7 +28,7 @@
         $alreadyThere = false;//token already in the db
         
         $minutes_to_add = 120;//json data & token will be available for the next two hours
-        $time = new DateTime('NOW');
+        $time = new DateTime('now', new DateTimezone('Europe/Rome'));
         $time->add(new DateInterval('PT' . $minutes_to_add . 'M'));
         $datetime = $time->format('Y-m-d H:i:s');
 
