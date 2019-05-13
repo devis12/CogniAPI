@@ -441,6 +441,41 @@ function trainFaceGroup(loggedUser){
 }
 
 
+/*  Given the array with all the azure faceIds retrieved in face analysis of multiple images
+    group them by person using group azure face service
+*/
+function findSimilarInBatchAnn(cogniFaceIds) {
+    return new Promise((resolve, reject) => {
+        if(cogniFaceIds && Array.isArray(cogniFaceIds)){
+            let uriBQ = uriBaseFace + '/group';
+
+
+            fetch(uriBQ, {
+                method: 'POST',
+                body: '{faceIds: ' + JSON.stringify(cogniFaceIds) + '}',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Ocp-Apim-Subscription-Key' : subscriptionKeyF
+                }
+            })
+                .then(res => {
+                    if(!res.ok) {//res.status<200 || res.status >=300
+                        res.json().then( dataErr  => console.log('Something went wrong in groupFace:\n ' + JSON.stringify(dataErr)));
+                        reject(null);
+
+                    }else{
+                        res.json().then( data => resolve(data.groups));
+                    }
+
+                }).catch(e => reject(e));
+
+        }else
+            return [];
+    });
+}
+
+
+
 /*  Function will perform request in order to find the most suitable match for each face
     recognized inside the image. The match will be found inside the group faces related
     to the logged user and will be associated with the info the user has supplied in the
@@ -471,7 +506,8 @@ function findSimilar(loggedUser, cogniFaces){
                         findUserDataForPersistedIds(groupName, persistedIdVals).then(persistedUserData => {
 
                             for(let i = 0; i < cogniFaces.length; i++){
-                                cogniFaces[i]['similarFaces'] = persistedUserData[i];
+                                cogniFaces[i]['similarFaces'] = {};
+                                cogniFaces[i]['similarFaces']['similarPersistedFaces'] = persistedUserData[i];
                             }
 
                             resolve(cogniFaces);
@@ -673,4 +709,4 @@ function findUserDataForPersistedIds(faceList, persistedFaces) {
 }
 
 module.exports = {  analyseRemoteImage, faceRemoteImage, analyseRemoteImageCogniSchema, createFaceGroup,
-                    addToFaceGroup, patchFace, forgetFace, trainFaceGroup, findSimilar};
+                    addToFaceGroup, patchFace, forgetFace, trainFaceGroup, findSimilar, findSimilarInBatchAnn};

@@ -15,9 +15,10 @@ user data (possibly a name+surname) she/he'll perform it bu clicking Recognize  
         <p class="mt-1">
             <h5>FACE_ID "<%=face.faceId%>"</h5>
 
-            <% if(face.similarFaces != undefined) { %>
+            <% if(face.similarFaces != undefined && face.similarFaces.similarPersistedFaces != undefined
+                    && Array.isArray(face.similarFaces.similarPersistedFaces)) { %>
 
-                <% for(similarFace of face.similarFaces){ %>
+                <% for(similarFace of face.similarFaces.similarPersistedFaces){ %>
 
                 <br />
                 <span class="font-italic mt-2">
@@ -40,7 +41,8 @@ user data (possibly a name+surname) she/he'll perform it bu clicking Recognize  
             <% } %>
         </p>
 
-        <% if(face.similarFaces != undefined) { %>
+        <% if(face.similarFaces != undefined && face.similarFaces.similarPersistedFaces != undefined
+                && Array.isArray(face.similarFaces.similarPersistedFaces)) { %>
 
             <% if(imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){%>
                 <p class="mt-2">

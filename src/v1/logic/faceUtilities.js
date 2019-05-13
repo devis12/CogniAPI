@@ -349,4 +349,75 @@ function azureLandmarksIntoGoogle(aFaceLandmarks){
     ];
 }
 
-module.exports = {matchFaces, buildFacesObj};
+/*  Given an array of imageAnnotations (e.g. after a batch analysis)
+    provide an array with all the temporary faceIds supplied by Azure Face
+* */
+function retrieveFaceIds(imgAnnotations){
+    if(imgAnnotations && Array.isArray(imgAnnotations)){
+        let faceIds = [];
+        for(let imgAnn of imgAnnotations){
+
+            if(imgAnn.faces && Array.isArray(imgAnn.faces)){
+
+                for(let face of imgAnn.faces){
+                    if(face.faceId)
+                        faceIds.push(face.faceId);
+                }
+
+            }
+        }
+
+        return faceIds;
+
+    }else
+        return [];
+}
+
+/*  Given an array of imageAnnotations (e.g. after a batch analysis)
+    and the array of array with faceIds grouped by Azure Face
+    put the right data in the faces json obj inside similarFaces.similarBatchFaceIds
+* */
+function putSimilarBatchFaces(imgAnnotations, faceIdsGrouped){
+    if(imgAnnotations && Array.isArray(imgAnnotations)){
+
+        for(let imgAnn of imgAnnotations){
+
+            if(imgAnn.faces && Array.isArray(imgAnn.faces)){
+
+                for(let face of imgAnn.faces){
+                    if(face.faceId){
+                        if(!face['similarFaces'])
+                            face['similarFaces'] = {};
+
+                        face['similarFaces']['similarBatchFaceIds'] = groupOfBatchFaceIds(face.faceId, faceIdsGrouped);
+
+                    }
+                }
+
+            }
+        }
+    }
+}
+
+/*  Given a face id and the array of array with faceIds grouped by Azure Face
+    return the one containing faceId, if there is not return an empty []
+* */
+function groupOfBatchFaceIds(faceId, faceIdsGrouped){
+    if(faceId && faceIdsGrouped && Array.isArray(faceIdsGrouped)){
+
+        for(let faceIdsG of faceIdsGrouped){
+            if(Array.isArray(faceIdsG)){
+                for(let faceIdinG of faceIdsG){
+                    if(faceIdinG == faceId)
+                        return faceIdsG;
+                }
+            }
+        }
+
+        return []; // not found
+
+    }else
+        return [];
+}
+
+module.exports = {buildFacesObj, retrieveFaceIds, putSimilarBatchFaces};

@@ -172,7 +172,14 @@ function asyncImagesAnn(imgUrls, username, minScore, widgetCalling){
                     performAsyncImagesAnn(imgUrls, username, minScore)
 
                         .then( imgAnnotations => {
-                            encodeB64AnnotationBatch(token, imgAnnotations);
+                            // extract just cogni api img annotations
+                            let cogniImgAnnotations = extractCogniImgAnnotations(imgAnnotations);
+
+                            //put similarFaces.similarBatchFaceIds into faces objects using grouping provided by Azure Face on face ids
+                            batchFacesRecognition(cogniImgAnnotations).then( () => {
+                                encodeB64AnnotationBatch(token, cogniImgAnnotations);
+                            });
+
                         })
 
                         .catch(error => {
@@ -204,14 +211,13 @@ function performAsyncImagesAnn(imgUrls, username, minScore, widgetCalling){
                         .then(data => {
                             imgAnnotations.push(data);
                             resolve2(data);
+
                             //save on the cache system on first (or later if the caching system is disabled) the retrieved data
                             if(username != undefined && username != '' && widgetCalling)
                                 encodeB64Annotation(username, [data]);
                         })
 
-                        .catch(dataErr => {
-                            console.log('Annotation process in async operations has gone into error:');
-                            console.log(dataErr);
+                        .catch(dataErr => { //Annotation process for an image url has gone into error:
                             imgAnnotations.push(dataErr);
                             resolve2(dataErr);
                         });
@@ -221,13 +227,37 @@ function performAsyncImagesAnn(imgUrls, username, minScore, widgetCalling){
         }
 
         //when all the annotations have been performed
-        setTimeout(() => {
-            Promise.all(annPromises)
-                .then(() => resolve(imgAnnotations))
+        setTimeout(() =>
+            {
+                Promise.all(annPromises)
+                    .then(() => resolve(imgAnnotations));
 
-        }, imgUrls.length * timeInterval);
+            }, imgUrls.length * timeInterval);
 
 
+    });
+}
+
+/*  Given an array of cogni img annotations provided after the batch analysis
+* */
+function batchFacesRecognition(cogniImgAnnotations){
+    return new Promise((resolve, reject) => {
+        //grouping faceids in a unique array
+        let faceIds = faceUtilities.retrieveFaceIds(cogniImgAnnotations);
+
+        if(faceIds.length > 0) {
+            azureCompVision.findSimilarInBatchAnn(faceIds)
+
+                .then(faceIdsGrouped => {
+                    faceUtilities.putSimilarBatchFaces(cogniImgAnnotations, faceIdsGrouped);
+                    resolve(cogniImgAnnotations);
+                })
+
+                .catch( () => resolve(cogniImgAnnotations));
+
+
+        }else//just return imgAnnotations as it is, because there are no face detected by Azure on which you can perform the analysis
+            resolve(cogniImgAnnotations);
     });
 }
 
@@ -327,34 +357,6 @@ function batchAnnFilterOn(imgAnnotations, filterOn){
         return {};
 }
 
-/*  FilterOn will decide on which attributes you want to focus your analysis:
-    it could be something like 'faces', 'objects' and so on...
-* */
-function batchAnnFilterOn(imgAnnotations, filterOn){
-    if(imgAnnotations && Array.isArray(imgAnnotations)){
-        if(filterOn){
-
-            let finalResults = [];
-            for(let imgAnn of imgAnnotations) {
-                let cogniImgAnn = {
-                    imageUrl: imgAnn['imageUrl'],
-                    responseStatus: imgAnn['responseStatus']
-                };
-                cogniImgAnn[filterOn] = imgAnn[filterOn];
-                finalResults.push(cogniImgAnn);
-            }
-
-            return finalResults;
-
-        }else
-
-            return imgAnnotations;
-
-
-    }else
-        return {};
-}
-
 /*  FilterOnEmotion will decide which annotations to filter out based on the pass emotion
     and a given threshold emotionscore
 * */
@@ -378,10 +380,10 @@ function batchAnnFilterOnEmotion(imgAnnotations, emotion, emotionScore){
 
 }
 
-/*  This function will help us in order to store the answer elaborated from the api
-    encoding it in base 64 for future development & analysis (a sort of caching system. necessary for batch analysis)
+
+/*  Given the whole imgAnnotations array extract just the cogniAPI data
 * */
-function encodeB64AnnotationBatch(token, imgAnnotations){
+function extractCogniImgAnnotations(imgAnnotations){
     let cogniImgAnnotations = [];
 
     for(let imgAnn of imgAnnotations) {
@@ -396,13 +398,17 @@ function encodeB64AnnotationBatch(token, imgAnnotations){
             });
 
     }
+    return cogniImgAnnotations;
+}
 
-    //console.log('loading to cognidb the following json (token = ' + token + ')');
-    //console.log(cogniImgAnnotations);
+/*  This function will help us in order to store the answer elaborated from the api
+    encoding it in base 64 for future development & analysis (a sort of caching system. necessary for batch analysis)
+* */
+function encodeB64AnnotationBatch(token, imgAnnotations){
 
     let bodyReq = {
         'btoken': token,
-        'data64': Buffer.from(JSON.stringify(cogniImgAnnotations)).toString('base64')
+        'data64': Buffer.from(JSON.stringify(imgAnnotations)).toString('base64')
     };
 
     fetch(backendStorage + 'updateBatchAnn.php', {

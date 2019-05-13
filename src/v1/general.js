@@ -21,7 +21,7 @@ const uriAzureFace = 'https://westcentralus.api.cognitive.microsoft.com/face/v1.
 /*  GLOBAL VARIABLES    */
 
 //time between different async image analysis in milli-second
-const asyncAnalysisInterval = 90000; //90s
+const asyncAnalysisInterval = 75000; //75s
 // following boolean will indicate if the user data stored and related to a face will be saved on azure
 // or on our personal storage
 const userDataStoredOnAzure = false;
