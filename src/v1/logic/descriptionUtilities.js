@@ -1,5 +1,5 @@
 /*
-*   Module which displays some utilities in order to manipulate, process and reconciliate
+*   Module which displays some utilities in order to manipulate, process and reconcile
 *   description, tags, objects and general content info related to an image in a single
 *   and standard schema
 *
@@ -11,9 +11,12 @@
 *   with a property called name which is the tag name*/
 function uniqueTagNames(tags, tagsConfidence){
     tags.sort();
+
     let tagsToAdd = [];
     let j = 0;// j = index for tagsConfidence
     let i = 0;// i = index for tags
+
+    //inserting all the tags in tagsToAdd in a sorted way
     while(i < tags.length && j < tagsConfidence.length){
         if(tagsConfidence[j]['name'] < tags[i]){
             if(tagsConfidence[j]['name'] != tagsToAdd[tagsToAdd.length-1])
@@ -37,8 +40,10 @@ function uniqueTagNames(tags, tagsConfidence){
             tagsToAdd.push(tags[i]);
         i++;
     }
+
     tags = tagsToAdd;
-    tags.sort();
+
+    // tags.sort(); // this won't be necessary
     return tags;
 }
 
@@ -51,7 +56,8 @@ function buildDescriptionObj(gCloudV, azureCV){
     let categoriesArray = []; //array of categories based on the 86 taxonomy defined by Azure
     let tags = []; // generic tags array
 
-    if(azureCV) {
+    if(azureCV) { // in case we get azure CV data, get categories and captions
+
         for (let category of azureCV['categories']) {
             categoriesArray.push({name: category['name'], confidence: category['score']});
         }
@@ -64,7 +70,7 @@ function buildDescriptionObj(gCloudV, azureCV){
 
     let tagsConfidence = buildTagsObj(gCloudV, azureCV, 0.0, 'name');//build tags object in order to fill better the generic_tags array
 
-    //process to add tags retrieved in azure computer vision and google cloud vision tag fields into generic_tags
+    //process to add tags retrieved in azure computer vision and google cloud vision tag fields into generic_tags (just tag names)
     tags = uniqueTagNames(tags, tagsConfidence);
 
     descr['generic_tags'] = [tags];
@@ -147,18 +153,18 @@ function azureFilterTags(azureJson, minScore){
 
 
 /*  Starting from google cloud vision and azure computer vision objects
-    build a common tag objects
+    build a common tag objects (given also a minimum confidence threshold)
 * */
 function buildTagsObj(gCloudV, azureCV, minScore = 0.0, sortCat = 'confidence'){
     let tags = [];
 
-    if(gCloudV) {
+    if(gCloudV) { // google cloud vision results are available
         let gCloudTags = gcloudFilterTags(gCloudV, minScore);
         tags = tags.concat(gCloudTags['tags']);
         tags = tags.concat(gCloudTags['logos']);
     }
 
-    if(azureCV) {
+    if(azureCV) {  // azure computer vision results are available
         let azureTags = azureFilterTags(azureCV, minScore);
         tags = tags.concat(azureTags['tags']);
     }
@@ -199,30 +205,37 @@ function azureLandmarks(azureCV){
     let categories = azureCV['categories'];
 
     for(let cat of categories){
-        if( cat['detail'] && cat['detail']['landmarks']  && Array.isArray(cat['detail']['landmarks']) &&
+
+        if( cat['detail'] && cat['detail']['landmarks'] &&
+            Array.isArray(cat['detail']['landmarks']) &&
             (cat['detail']['landmarks']).length > 0){
+
             for(let landmark of ((cat['detail']['landmarks']))){
                 landmarks.push(landmark);
             }
+
         }
+
     }
 
     return landmarks;
 }
 
 /*  Starting from google cloud vision and azure computer vision objects
-    build a common landmarks array
+    build a common landmarks array (given also a minimum confidence threshold)
 * */
 function buildLandmarksObj(gCloudV, azureCV, minScore = 0.0){
     let landmarks = [];
 
-    if(gCloudV){
+    if(gCloudV){ //google cloud vision results are available
+
         let gCloudLandMarks = gCloudV['landmarkAnnotations'];
+
         //apply standard bounding box to all the landmarks objects
-        if(azureCV)
+        if(azureCV)// azure computer vision results are available
             gCloudVObjsToCogniBoundingBox(gCloudLandMarks, azureCV['metadata']['width'], azureCV['metadata']['height']);
 
-        else//need to retrieve image sizes from gcloud (already done and put in the metadata tag of gcloudv with appropriate calls)
+        else//WARNING! need to retrieve image sizes from gcloud (already done and put in the metadata tag of gcloudv with appropriate calls)
             gCloudVObjsToCogniBoundingBox(gCloudLandMarks, gCloudV['metadata']['width'], gCloudV['metadata']['height']);
 
 
@@ -238,7 +251,7 @@ function buildLandmarksObj(gCloudV, azureCV, minScore = 0.0){
         }
     }
 
-    if(azureCV){
+    if(azureCV){// azure computer vision results are available
         let azureCVLandmarks = azureLandmarks(azureCV);
         landmarks = landmarks.concat(azureCVLandmarks);
     }
@@ -257,14 +270,16 @@ function buildLandmarksObj(gCloudV, azureCV, minScore = 0.0){
 
 
 /*  Starting from google cloud vision and azure computer vision objects
-    build a common objects array
+    build a common objects array (given also a minimum confidence threshold)
 * */
 function buildObjectsObj(gCloudV, azureCV, minScore = 0.0){
     let objects = [];
-    if(gCloudV) {
+
+    if(gCloudV) {// gcloud vision results are available
         let gCloudObjects = gCloudV['localizedObjectAnnotations'];
+
         //apply standard bounding box to all the detected objects
-        if(azureCV)
+        if(azureCV)// azure computer vision results are available
             gCloudVObjsToCogniBoundingBox(gCloudObjects, azureCV['metadata']['width'], azureCV['metadata']['height']);
 
         else//need to retrieve image sizes from gcloud (already done and put in the metadata tag of gcloudv with appropriate calls)
@@ -282,7 +297,7 @@ function buildObjectsObj(gCloudV, azureCV, minScore = 0.0){
         }
     }
 
-    if(azureCV){
+    if(azureCV){// azure computer vision results are available
         let azureObjects = azureCV['objects'];
         //apply standard bounding box to all the detected objects
         azureCVObjsToCogniBoundingBox(azureObjects, azureCV['metadata']['width'], azureCV['metadata']['height']);
@@ -310,13 +325,15 @@ function buildObjectsObj(gCloudV, azureCV, minScore = 0.0){
 }
 
 /*  Starting from google cloud vision detected texts
-    build a common objects array
+    build a common objects array (given also a minimum confidence threshold)
 * */
 function buildTextsObj(gCloudV, azureCV, minScore = 0.0){
     let texts = [];
-    let gCloudTexts = gCloudV['textAnnotations'];
+
+    let gCloudTexts = gCloudV['textAnnotations']; //text is going to be detected just from gcloud
+
     //apply standard bounding box to all the detected objects
-    if(azureCV)
+    if(azureCV)// azure computer vision results are available
         gCloudVObjsToCogniBoundingBox(gCloudTexts, azureCV['metadata']['width'], azureCV['metadata']['height']);
 
     else//need to retrieve image sizes from gcloud (already done and put in the metadata tag of gcloudv with appropriate calls)
@@ -347,13 +364,15 @@ function buildTextsObj(gCloudV, azureCV, minScore = 0.0){
     build a web detection obj
 * */
 function buildWebDetectionObj(gCloudV){
-    let webDetection = gCloudV['webDetection'];
-
+    // need for now to process this data (we take as it is)
+    let webDetection = gCloudV['webDetection']; //web detection data is given from google cloud vision
 
     return webDetection;
 }
 
-/*  Add boundingBox property to azure computer vision objects with the standard cogni bounding box schema*/
+/*  Add boundingBox property to azure computer vision objects with the standard cogni bounding box schema.
+*   We're passing from top,left,width,height to bl,br,tl,tr,width,height
+* */
 function azureCVObjsToCogniBoundingBox(azureCVObjects, width, height){
     for(let aObj of azureCVObjects){
         let bl =    {   'x':    aObj['rectangle']['x'],
@@ -375,13 +394,15 @@ function azureCVObjsToCogniBoundingBox(azureCVObjects, width, height){
     }
 }
 
-/*  Add boundingBox property to gCloud objects with the standard cogni bounding box schema*/
+/*  Add boundingBox property to gCloud objects with the standard cogni bounding box schema
+*   We're passing from an array of vertices to bl,br,tl,tr,width,height
+* */
 function gCloudVObjsToCogniBoundingBox(gCloudObjects, width, height){
     for(let gCloudObj of gCloudObjects){
         let vertices;
         let normalized = false;
 
-        if(gCloudObj['boundingPoly']['vertices'].length > 0)
+        if(gCloudObj['boundingPoly']['vertices'].length > 0) // we can't know for sure that vertices will be filled (in case we check and use normalizedVertices)
             vertices = gCloudObj['boundingPoly']['vertices'];
 
         else if(gCloudObj['boundingPoly']['normalizedVertices'].length > 0) {
@@ -394,6 +415,9 @@ function gCloudVObjsToCogniBoundingBox(gCloudObjects, width, height){
         let y1 = vertices[0]['y']; // min y
         let y2 = vertices[0]['y']; // max y
 
+        // remind that
+        //  - x goes from 0 -> N (left -> right)
+        //  - y goes from 0 -> N (top -> bottom)
         for(let point of vertices){
             x1 = Math.min(x1, point['x']);
             x2 = Math.max(x2, point['x']);
@@ -413,6 +437,7 @@ function gCloudVObjsToCogniBoundingBox(gCloudObjects, width, height){
         let tr =    {   'x':    (normalized)? +(x2 * width).toFixed(1):x2,
                         'y':    (normalized)? +(y2 * height).toFixed(1):y2
         };
+
         gCloudObj['boundingBox'] = {
             'bl': bl, 'br': br, 'tr': tr, 'tl': tl,
             'height': +(bl['y']-tl['y']).toFixed(1), 'width': +(br['x']-bl['x']).toFixed(1)

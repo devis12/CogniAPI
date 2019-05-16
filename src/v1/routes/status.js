@@ -14,6 +14,7 @@ const statusLogic = require('../logic/status_logic.js');
 // health check (public endpoint)
 router.get('/status', (req, res) => {
     statusLogic.hello()
+
         .then( data => {
             res.status(200).json({
                 responseStatus: {
@@ -23,7 +24,8 @@ router.get('/status', (req, res) => {
                 }
             });
         })
-        .catch(e => {
+
+        .catch(e => { // when will this happen? xD
             res.status(500).json({
                 responseStatus: {
                     status: 500,

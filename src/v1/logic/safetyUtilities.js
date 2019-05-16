@@ -15,11 +15,11 @@ function buildSafetyField(gcloudSafetyAnn, azureAdult, property){
     let propertyC = property.substr(0,1).toUpperCase() + property.substr(1,property.length-1);
     let safetyField = {};
 
-    if(gcloudSafetyAnn){
+    if(gcloudSafetyAnn){ // we've data from gcloud vision
         safetyField['confidenceLikelihood'] = gcloudSafetyAnn[property];
     }
 
-    if(azureAdult){
+    if(azureAdult){ // we've data from azure computer vision
         safetyField['present'] = azureAdult['is' + propertyC + 'Content'];
         safetyField['confidence'] = azureAdult[property + 'Score'];
     }

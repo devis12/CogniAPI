@@ -11,7 +11,8 @@ const app = express();
 
 //middlewares
 app.use(express.static('views'));// folder in which to put the static files (html, css, js client)
-app.use(bodyParser.json({limit: '50mb'})); // read json
+app.use(bodyParser.json({limit: '50mb'})); // read json (this will help to avoid strange errors while navigating through the widget)
+
 //middlewares (just for the widget)
 app.use(bodyParser.urlencoded({ extended: true , limit: '50mb'})); // read form enctype data
 app.set('view engine', 'ejs'); // set the engine render ejs for dynamic building of html pages with ejs tags
@@ -27,6 +28,7 @@ const azureRouter = require('./v1/routes/azure'); // to test azure computer visi
 const gCloudRouter = require('./v1/routes/gcloud');// to test google cloud vision apis
 const combineRouter = require('./v1/routes/combine');// to test combine apis
 const combineBatchRouter = require('./v1/routes/combine_batch');// to test combine apis
+
 app.use('/v1', statusRouter);
 app.use('/v1', azureRouter);
 app.use('/v1', gCloudRouter);

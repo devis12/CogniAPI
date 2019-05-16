@@ -1,7 +1,7 @@
 /*
 *   Functions for health-check and status of application;
-*   Developed in order to discover error or generally to find out
-*   if the server is up & running and/or operating properly
+*   Developed in order to discover if the server is up & running
+*   and also to test if the dir structure could be considered appropriate
 *
 *   @author: Devis
 */

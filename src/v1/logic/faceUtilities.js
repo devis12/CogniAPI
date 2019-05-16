@@ -40,6 +40,10 @@ function gFaceVertex(gcloudFace){
     let x2 = gcloudFace['vertices'][0]['x']; // max x
     let y1 = gcloudFace['vertices'][0]['y']; // min y
     let y2 = gcloudFace['vertices'][0]['y']; // max y
+
+    // remind that
+    //  - x goes from 0 -> N (left -> right)
+    //  - y goes from 0 -> N (top -> bottom)
     for(let point of gcloudFace['vertices']){
         x1 = Math.min(x1, point['x']);
         x2 = Math.max(x2, point['x']);
@@ -64,17 +68,23 @@ function gFaceVertex(gcloudFace){
 
 /*  given google face & azure face rectangles unified with the metrics
     {bl, br, tl, tr} defined above calculate the percentage of the overlapped
-    area in respect to gloud rectangle
+    area in respect to gcloud rectangle
 * */
 function faceOverlap(gFaceRect, aFaceRect){
-    //first consider case in which the overlap is not possible, so the result is 0
+    //first consider the case in which the overlap is not possible, so the result is 0
     if(gFaceRect['br']['x'] < aFaceRect['bl']['x'] || gFaceRect['bl']['x'] > aFaceRect['br']['x'])//considering x
+        // when the gFaceRect finished before the start of azure one (or the opposite)
         return 0;
 
     else if(gFaceRect['bl']['y'] < aFaceRect['tl']['y'] || gFaceRect['tl']['y'] > aFaceRect['bl']['y'])//considering y
+        // when the gFaceRect finished before the start of azure one (or the opposite)
         return 0;
 
     else{ //there is an overlap
+
+        // remind that
+        //  - x goes from 0 -> N (left -> right)
+        //  - y goes from 0 -> N (top -> bottom)
         let xc1 = Math.max(gFaceRect['bl']['x'], aFaceRect['bl']['x']);
         let xc2 = Math.min(gFaceRect['br']['x'], aFaceRect['br']['x']);
         let yc1 = Math.max(gFaceRect['bl']['y'], aFaceRect['bl']['y']);
@@ -98,10 +108,14 @@ function azureCelebrities(azureCV){
     let categories = azureCV['categories'];
 
     for(let cat of categories){
-        if( cat['detail'] && cat['detail']['celebrities']  && Array.isArray(cat['detail']['celebrities']) &&
+
+        if( cat['detail'] && cat['detail']['celebrities'] && Array.isArray(cat['detail']['celebrities']) &&
             (cat['detail']['celebrities']).length > 0){
+
             for(let celebrity of ((cat['detail']['celebrities']))){ celebrities.push(celebrity);}
+
         }
+
     }
 
     return celebrities;
@@ -135,7 +149,7 @@ function matchFaces(gcloudFaces, azureFaces, aCelebrities){
     for(let aFace of azureFaces) {
         aFace['cogniFaceRect'] = azureFaceVertex(aFace['faceRectangle']);
         aFace['celebrity'] = checkForCelebrity(aFace, aCelebrities);
-        azFaceMatched[aFace['faceId']] = false;
+        azFaceMatched[aFace['faceId']] = false; // init with false (used it later to see it there has been found a matching on the gcloud counterpart)
     }
 
     //for every face in GCloud put the bounding rectangle in 4 vertex (bl, br, tl, tr)
@@ -146,10 +160,13 @@ function matchFaces(gcloudFaces, azureFaces, aCelebrities){
 
     //search for every face in gcloud faceAnnotation the one in azure face with the most overlap
     for(let gFace of gcloudFaces){
-        let matchId = null; //put here the azure face id value to apply to google
-        let matchFace = null; //put here the azure face value which match the google one
+        let matchId = null; // put here the azure face id value to apply to google face (gFace)
+        let matchFace = null; // put here the azure face value which match the google one
         let maxOverlap = 0; //overlap has to be between 0-100 as a percentage value
+
+        // debugging purpose
         //console.log('\n\nOVERLAP\nConsidering gface with tl = ' + JSON.stringify(gFace['cogniFaceRect']['tl']) + ' and br = ' + JSON.stringify(gFace['cogniFaceRect']['br']));
+
         for(let aFace of azureFaces){
 
             if(!azFaceMatched[aFace['faceId']]){ //azure face ids is not already taken
@@ -164,7 +181,11 @@ function matchFaces(gcloudFaces, azureFaces, aCelebrities){
 
         }
         azFaceMatched[matchId] = true;
+
+        // debugging purpose
         //console.log('Overlap for ' + matchId + ' equals to ' + maxOverlap);
+
+        // put azure face data into the gface matching one (fast retrieving later on when building the complete and final faces obj)
         gFace['azureId'] = matchId;
         gFace['azureData'] = matchFace;
     }
@@ -183,15 +204,17 @@ function buildFacesObj(gcloudFaces, azureFaces, azureCV){
     return buildFacesObjComplete(gcloudFaces, azureFaces);
 }
 
-/*  Used in order to build face object with a unified and standard schema,
+/*  Used in order to build faces object with a unified and standard schema,
     when you got annotations object from both cognitive services with them
     having recognize the same amount of faces
+    (Matching Faces has already taken place at this point, so we have all the azure matching
+    data for each face already in the correspondent gcloud face obj)
 * */
 function buildFacesObjComplete(gcloudFaces, azureFaces){
     let faces = [];
     let matchedFaces = {};
 
-    if(gcloudFaces){
+    if(gcloudFaces){ // we've data from google cloud visions
         for (let gFace of gcloudFaces) {
             let face = {};
 
@@ -209,7 +232,7 @@ function buildFacesObjComplete(gcloudFaces, azureFaces){
 
     if(azureFaces){ // there could be faces from azure not considered
         for(let aFace of azureFaces){
-            if(!matchedFaces[aFace['faceId']]){ // face not been considered yet
+            if(!matchedFaces[aFace['faceId']]){ // face not been considered yet (no matching in the gcloud annotation)
                 let face = {};
                 matchedFaces[aFace['faceId']] = true;
                 populateFaceObjAzure(face, aFace);
@@ -221,6 +244,19 @@ function buildFacesObjComplete(gcloudFaces, azureFaces){
     return faces;
 }
 
+/*  Build an empty emotion json object*/
+function emptyEmotionObj(){
+    return {
+        'anger': {},
+        'contempt': {},
+        'disgust': {},
+        'fear': {},
+        'happiness': {},
+        'neutral': {},
+        'sadness': {},
+        'surprise': {}
+    };
+}
 
 /*  Given the face object (unified schema) populate it with data provided by azureFace
 * */
@@ -279,6 +315,7 @@ function populateFaceObjGcloud(face, gFace) {
 
     if (!face['emotions'])
         face['emotions'] = emptyEmotionObj();
+
     face['emotions']['anger']['confidenceLabel'] = gFace['angerLikelihood'];
     face['emotions']['contempt']['confidenceLabel'] = undefined;
     face['emotions']['disgust']['confidenceLabel'] = undefined;
@@ -297,22 +334,8 @@ function populateFaceObjGcloud(face, gFace) {
     face['landmarks'] = gFace['landmarks'];
 }
 
-/*  Build an empty emotion json object*/
-function emptyEmotionObj(){
-    return {
-        'anger': {},
-        'contempt': {},
-        'disgust': {},
-        'fear': {},
-        'happiness': {},
-        'neutral': {},
-        'sadness': {},
-        'surprise': {}
-    };
-}
-
 /*  This function will return the face landmarks provided by azure face into the
-*   google cloud ones by matching the similar ones and put them the google cloud label.
+*   google cloud ones by matching the similar ones.
 *   Google Cloud Vision landmarks are preferable because it gives you more fields and
 *   data for landmark (also z for depth, and not just x and y coordinates)*/
 function azureLandmarksIntoGoogle(aFaceLandmarks){

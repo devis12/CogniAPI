@@ -16,6 +16,8 @@ const annotateFeatures = [
 ];
 
 
+// in order to avoid some random bugs, we prefer to fetch the image in base64 and directly upload the content to gcloud vision
+// put false in base64 boolean value if you perfer to just pass the url of the image (faster, but you can lose some data)
 const requestNative = require('request-promise-native').defaults({
     encoding: 'base64'
 });
@@ -36,10 +38,10 @@ const safetyUtilities = require('./safetyUtilities');
 //colorinfo tags utilities
 const colorInfoUtilities = require('./colorInfoUtilities');
 
-//functions to perform single image annotation
+//functions to perform single image annotation with gcloud vision client libraries
 function analyseRemoteImage(imageUrl, customFeatures){
     return new Promise((resolve, reject) => {
-        console.log('gcloud vision request for ' + imageUrl);
+        //console.log('gcloud vision request for ' + imageUrl); // debugging purpose
         const request = {
             image: {source: {imageUri: imageUrl}},
             features: annotateFeatures,
@@ -49,33 +51,43 @@ function analyseRemoteImage(imageUrl, customFeatures){
             request['features'] = customFeatures;
 
         if(base64){// in order to avoid gcloud bug is better if you upload the photo in base64
-            requestNative(imageUrl).then(obj64 => {
-                request['image'] = {content: obj64};
-                client
-                    .annotateImage(request)
-                    .then(response => {
-                        resolve(response);
-                    })
-                    .catch(err => {
-                        reject(err);
-                    });
-            }).catch( errRequest => {
-                if(errRequest.error && errRequest.error.code == 'ENOTFOUND')
-                    reject({
-                        responseStatus: {
-                            status: 404,
-                            code: 'Not Found'
-                        }
-                    });
-                else
-                    reject({
-                        responseStatus: {
-                            status: 400,
-                            code: 'Bad request'
-                        }
-                    });
-            });
-        }else{
+            requestNative(imageUrl)
+
+                .then(obj64 => {
+                    request['image'] = {content: obj64};
+                    client
+                        .annotateImage(request)
+                        .then(response => {
+                            resolve(response);
+                        })
+
+                        .catch(err => {
+                            reject(err);
+                        });
+
+                })
+
+                .catch( errRequest => { // request native to fetch img data has gone into error
+
+                    if(errRequest.error && errRequest.error.code == 'ENOTFOUND') //image not found
+                        reject({
+                            responseStatus: {
+                                status: 400,
+                                msg: 'Image URL is not accessible.',
+                                code: 'InvalidImageUrl'
+                            }
+                        });
+
+                    else //generic bad request
+                        reject({
+                            responseStatus: {
+                                status: 400,
+                                code: 'Bad request'
+                            }
+                        });
+                });
+
+        }else{ // just pass the url of the image
             client
                 .annotateImage(request)
                 .then(response => {
@@ -91,27 +103,31 @@ function analyseRemoteImage(imageUrl, customFeatures){
     });
 }
 
-//functions to perform single image annotation, but to pack the values as a json respecting the cogniAPI schema
+/*  functions to perform single image annotation, but to pack the values as a json respecting the cogniAPI schema
+*/
 function analyseRemoteImageCogniSchema(imageUrl, minScore){
     return new Promise( (resolve, reject) => {
+
         analyseRemoteImage(imageUrl)
             .then(gCloudJSON => {
                 let imgAnn = gCloudJSON[0];//gCloudJSON is basically an array of imgAnnotations, but we're analyzing a single one
-                requestImageSize(imageUrl)
+
+                requestImageSize(imageUrl) // get metadata of the image
                     .then(size => {
                         imgAnn['metadata'] = {};
                         imgAnn['metadata']['width'] = size['width'];
                         imgAnn['metadata']['height'] = size['height'];
                         imgAnn['metadata']['format'] = size['type'];
 
-                        resolve (reconciliateSchemaGCloud(imageUrl, imgAnn, minScore));
+                        resolve (reconcileSchemaGCloud(imageUrl, imgAnn, minScore));
                     })
+
                 .catch(err => console.error(err));
 
 
             })
             .catch( errValue => {
-                console.log(errValue);
+                console.error(errValue);
                 errValue['imageUrl'] = imageUrl;
                 reject(errValue);
             });
@@ -120,7 +136,7 @@ function analyseRemoteImageCogniSchema(imageUrl, minScore){
 
 /*  This function will reconcile the schema in a unique and standard one
 * */
-function reconciliateSchemaGCloud(imageUrl, gCloudVision, minScore){
+function reconcileSchemaGCloud(imageUrl, gCloudVision, minScore){
     let cogniAPI = {};//add field for cogniAPI data
 
     cogniAPI['imageUrl'] = imageUrl;

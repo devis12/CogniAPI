@@ -9,7 +9,7 @@ const express = require('express');
 const router = express.Router();
 
 //combine logic implemented in a module apart
-const cogniCombine = require('../logic/combine_logic');
+const cogniCombineBatch = require('../logic/combine_logic_batch');
 
 //batch combine annotations
 router.post('/analyse/batch', (req, res) => {
@@ -20,7 +20,7 @@ router.post('/analyse/batch', (req, res) => {
         minScore = 0.0;
 
     if(imgUrls && Array.isArray(imgUrls) && imgUrls.length > 0){
-        cogniCombine.asyncImagesAnn(imgUrls, loggedUser, minScore, false)
+        cogniCombineBatch.asyncImagesAnn(imgUrls, loggedUser, minScore, false)
             .then( token => res.status(202).json({'btoken': token}))
             .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
@@ -33,7 +33,7 @@ router.get('/analyse/batch/:token', (req, res) => {
     let btoken = req.params.token;
 
     if(btoken){
-        cogniCombine.getBatchAnn(btoken)
+        cogniCombineBatch.getBatchAnn(btoken)
             .then( batchResults => {
                 let batchResultsFiltered;
                 let emotion = req.query.emotion;
@@ -42,7 +42,7 @@ router.get('/analyse/batch/:token', (req, res) => {
                     if(Number.isNaN(emotionScore) || emotionScore < 0 || emotionScore > 1)
                         emotionScore = 0.75;//with invalid input or without the param just keep 0.75 as default
 
-                    batchResultsFiltered = cogniCombine.batchAnnFilterOnEmotion(batchResults, emotion, emotionScore);
+                    batchResultsFiltered = cogniCombineBatch.batchAnnFilterOnEmotion(batchResults, emotion, emotionScore);
                     res.status(200).json(batchResultsFiltered);
 
                 }else
@@ -59,7 +59,7 @@ router.get('/analyse/batch/:token/faces', (req, res) => {
     let btoken = req.params.token;
 
     if(btoken){
-        cogniCombine.getBatchAnn(btoken, 'faces')
+        cogniCombineBatch.getBatchAnn(btoken, 'faces')
             .then( batchResults => {
                 let batchResultsFiltered;
                 let emotion = req.query.emotion;
@@ -68,7 +68,7 @@ router.get('/analyse/batch/:token/faces', (req, res) => {
                     if(Number.isNaN(emotionScore) || emotionScore < 0 || emotionScore > 1)
                         emotionScore = 0.75;//with invalid input or without the param just keep 0.75 as default
 
-                    batchResultsFiltered = cogniCombine.batchAnnFilterOnEmotion(batchResults, emotion, emotionScore);
+                    batchResultsFiltered = cogniCombineBatch.batchAnnFilterOnEmotion(batchResults, emotion, emotionScore);
                     res.status(200).json(batchResultsFiltered);
 
                 }else
@@ -85,7 +85,7 @@ router.get('/analyse/batch/:token/tags', (req, res) => {
     let btoken = req.params.token;
 
     if(btoken){
-        cogniCombine.getBatchAnn(btoken, 'tags')
+        cogniCombineBatch.getBatchAnn(btoken, 'tags')
             .then( batchResults => res.status(200).json(batchResults))
             .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
@@ -98,7 +98,7 @@ router.get('/analyse/batch/:token/objects', (req, res) => {
     let btoken = req.params.token;
 
     if(btoken){
-        cogniCombine.getBatchAnn(btoken, 'objects')
+        cogniCombineBatch.getBatchAnn(btoken, 'objects')
             .then( batchResults => res.status(200).json(batchResults))
             .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
@@ -111,7 +111,7 @@ router.get('/analyse/batch/:token/description', (req, res) => {
     let btoken = req.params.token;
 
     if(btoken){
-        cogniCombine.getBatchAnn(btoken, 'description')
+        cogniCombineBatch.getBatchAnn(btoken, 'description')
             .then( batchResults => res.status(200).json(batchResults))
             .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
@@ -124,7 +124,7 @@ router.get('/analyse/batch/:token/texts', (req, res) => {
     let btoken = req.params.token;
 
     if(btoken){
-        cogniCombine.getBatchAnn(btoken, 'texts')
+        cogniCombineBatch.getBatchAnn(btoken, 'texts')
             .then( batchResults => res.status(200).json(batchResults))
             .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
@@ -137,7 +137,7 @@ router.get('/analyse/batch/:token/landmarks', (req, res) => {
     let btoken = req.params.token;
 
     if(btoken){
-        cogniCombine.getBatchAnn(btoken, 'landmarks')
+        cogniCombineBatch.getBatchAnn(btoken, 'landmarks')
             .then( batchResults => res.status(200).json(batchResults))
             .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
@@ -150,7 +150,7 @@ router.get('/analyse/batch/:token/safety', (req, res) => {
     let btoken = req.params.token;
 
     if(btoken){
-        cogniCombine.getBatchAnn(btoken, 'safetyAnnotation')
+        cogniCombineBatch.getBatchAnn(btoken, 'safetyAnnotation')
             .then( batchResults => res.status(200).json(batchResults))
             .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
@@ -163,7 +163,7 @@ router.get('/analyse/batch/:token/colors', (req, res) => {
     let btoken = req.params.token;
 
     if(btoken){
-        cogniCombine.getBatchAnn(btoken, 'graphicalData')
+        cogniCombineBatch.getBatchAnn(btoken, 'graphicalData')
             .then( batchResults => res.status(200).json(batchResults))
             .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{
@@ -176,7 +176,7 @@ router.get('/analyse/batch/:token/web', (req, res) => {
     let btoken = req.params.token;
 
     if(btoken){
-        cogniCombine.getBatchAnn(btoken, 'webDetection')
+        cogniCombineBatch.getBatchAnn(btoken, 'webDetection')
             .then( batchResults => res.status(200).json(batchResults))
             .catch(e => res.status((e.responseStatus.status)? e.responseStatus.status:500).json(e));
     }else{

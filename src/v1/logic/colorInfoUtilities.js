@@ -6,23 +6,28 @@
 *   @author: Devis
 */
 
-/*  Build cogniAPI colorInfo obj provided azure adult & google cloud
-*   safety annotation
+/*  Build cogniAPI colorInfo obj provided azure colors, azure image type (clipart, linedrawing)
+*   & google cloud imagePropertiesAnnotation.dominantColors
 *   */
 function buildColorInfoObj(gcloudColorInfo, azureColor, azureImageType){
-    let resObj = null;
-    if(azureColor && azureImageType) {
-        resObj = azureColor;
-        resObj['clipArtType'] = azureImageType['clipArtType'];
-        resObj['lineDrawingType'] = (+azureImageType['lineDrawingType']) == 1;
+    let colorsObj = null;
+
+    if(azureColor && azureImageType) { // check if there are the info from azure
+        //populate the obj with azure info
+        colorsObj = azureColor;
+        colorsObj['clipArtType'] = azureImageType['clipArtType'];
+        colorsObj['lineDrawingType'] = (+azureImageType['lineDrawingType']) == 1;
     }
 
-    if(gcloudColorInfo) {
-        if (resObj == null)
-            resObj = {};
-        resObj['colorInfoRGBA'] = gcloudColorInfo['colors'];
+    if(gcloudColorInfo) { // check if there are the info from gcloud
+        if (colorsObj == null) //check if the object is already popolated or not
+            colorsObj = {};
+
+        //popoulate the object with gcloud attributes
+        colorsObj['colorInfoRGBA'] = gcloudColorInfo['colors'];
     }
 
-    return resObj;
+    return colorsObj;
 }
+
 module.exports = {buildColorInfoObj};

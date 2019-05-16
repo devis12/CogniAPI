@@ -54,9 +54,9 @@ function checkUploadParams(pwd){
         alert('You didn\'t select any file');
         return false;
 
-    }else if($('#groupImages').prop('files').length > 16){
+    /*}else if($('#groupImages').prop('files').length > 16){
         alert('Sorry! You can\'t select more than 16 images');
-        return false;
+        return false;*/
 
     }else if(pwd == null || pwd == ''){//password is necessary in order to perform the upload
         $('#pwdAlert').removeClass('invisible');

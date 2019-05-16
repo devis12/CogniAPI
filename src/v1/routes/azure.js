@@ -154,7 +154,7 @@ router.get('/azure/colors', (req, res) => {
     }
 });
 
-// azure add face to face group
+// azure add face to face group (persist a new face)
 router.post('/azure/faces/:loggedUser', (req, res) => {
 
     let imageUrl = req.body.imageUrl;
@@ -176,7 +176,7 @@ router.post('/azure/faces/:loggedUser', (req, res) => {
 
 });
 
-// azure update face data to face group
+// azure update face data to face group (patch data related to a persisted face)
 router.patch('/azure/faces/:loggedUser', (req, res) => {
 
     let persistedFaceId = req.body.persistedFaceId;
@@ -197,7 +197,7 @@ router.patch('/azure/faces/:loggedUser', (req, res) => {
 
 });
 
-// azure update face data to face group
+// azure delete face data to face group
 router.delete('/azure/faces/:loggedUser', (req, res) => {
 
     let persistedFaceId = req.query.persistedFaceId;
@@ -233,6 +233,31 @@ router.post('/azure/faces/train/:loggedUser', (req, res) => {
             });
     }else{
         res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
+    }
+
+});
+
+// azure train face group
+router.get('/azure/faces/train/:loggedUser/status', (req, res) => {
+
+    let loggedUser = req.params.loggedUser;
+
+
+    if(loggedUser){
+        azureLogic.checkTrainingStatus(loggedUser)
+            .then( trainStatus => {
+                let trainingObj = {
+                    trainingStatus: trainStatus.status || trainStatus.error['code'] || (trainStatus.error['statusCode'] == 429)? 'RateLimitExceeded':null,
+                    createdDateTime: trainStatus.createdDateTime,
+                    lastActionDateTime: trainStatus.lastActionDateTime,
+                    message: (trainStatus.status)? trainStatus.message : trainStatus.error['message'],
+                    lastSuccessfulTrainingDateTime: trainStatus.lastSuccessfulTrainingDateTime
+                };
+                res.status(200).send(trainingObj);
+            })
+            .catch(e => {
+                res.status(400).json({trainingStatus: e.status || e.error.code});
+            });
     }
 
 });

@@ -63,7 +63,7 @@ user data (possibly a name+surname) she/he'll perform it bu clicking Recognize  
 
             <% }%>
 
-        <% }else if(imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){ %>
+        <% }else if(face.faceId && imgAnnotated.annotationDate != null && ((new Date() - new Date(imgAnnotated.annotationDate))/(1000*60*60*24)) < 1){ %>
             <div class="input-group">
                 <input type="text" class="form-control" placeholder="Name" id="name_<%= face.faceId%>">
                 <input type="hidden" id="target_<%= face.faceId%>"
