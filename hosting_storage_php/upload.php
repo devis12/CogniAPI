@@ -13,6 +13,9 @@
 	//randomString
     require_once('randomString.php');
 
+    //randomString
+    require_once('imageFixOrientation.php');
+
     // connessione a MySQL tramite mysqli_connect()
     $link = mysqli_connect($host, $user_h, $pwd_h, $db_h);
     if (!$link) {
@@ -77,6 +80,7 @@
 
                     //Upload the file into the temp dir
                     if(move_uploaded_file($tmpFilePath, $newFilePath)) {
+                        imageFixOrientation($newFilePath);//fix image orientation
                         $newFilePath = "https://cogniapi.altervista.org".substr($newFilePath,1);
                         array_push($result, $newFilePath);
                         

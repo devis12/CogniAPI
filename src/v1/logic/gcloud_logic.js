@@ -26,6 +26,9 @@ let base64 = true;//slow if you use it, but you're more sure that you don't fall
 //this will be useful when we have just gcloud annotation and we need image sizes
 const requestImageSize = require('request-image-size');
 
+//processing of image operations (used for autorotation based on exif data)
+const sharp = require('sharp');
+
 //description tags utilities
 const descriptionUtilities = require('./descriptionUtilities');
 
@@ -51,19 +54,29 @@ function analyseRemoteImage(imageUrl, customFeatures){
             request['features'] = customFeatures;
 
         if(base64){// in order to avoid gcloud bug is better if you upload the photo in base64
+
             requestNative(imageUrl)
 
                 .then(obj64 => {
-                    request['image'] = {content: obj64};
-                    client
-                        .annotateImage(request)
-                        .then(response => {
-                            resolve(response);
+
+                    fixImageOrientation(obj64)
+
+                        .then(obj64OrientationFixed => {
+                            request['image'] = {content: obj64OrientationFixed};
+                            client
+                                .annotateImage(request)
+                                .then(response => {
+                                    resolve(response);
+                                })
+
+                                .catch(err => {
+                                    reject(err);
+                                });
                         })
 
-                        .catch(err => {
-                            reject(err);
-                        });
+                        .catch(err => reject (err));
+
+
 
                 })
 
@@ -87,7 +100,8 @@ function analyseRemoteImage(imageUrl, customFeatures){
                         });
                 });
 
-        }else{ // just pass the url of the image
+        }else{ // just pass the url of the image (I DO NOT SUGGEST TO DO THAT, especially for what concerns exif Orientation bug)
+
             client
                 .annotateImage(request)
                 .then(response => {
@@ -160,6 +174,20 @@ function reconcileSchemaGCloud(imageUrl, gCloudVision, minScore){
     };
 
     return cogniAPI;
+}
+
+
+/*  Given the data of an image in base64, produce the data encoded in base 64 of the same image where
+*   it has been rotated properly based on exif data
+* */
+function fixImageOrientation(img64){
+    return new Promise((resolve, reject) => {
+        sharp(Buffer.from(img64, 'base64'))
+            .rotate() //rotate based on exif value
+            .toBuffer()
+            .then(data => resolve(data.toString('base64')))
+            .catch(err => reject(err));
+    });
 }
 
 module.exports = {analyseRemoteImage, analyseRemoteImageCogniSchema};
