@@ -99,6 +99,24 @@ function toggleCacheAnnBtn(checked){
     }
 }
 
+function drawBound(idBox, perc, width, height, topF, leftF, widthF, heightF){
+    let face_box = document.getElementById(idBox);
+    face_box.style.border = '5px solid red';
+    face_box.style.top = ((topF/height) * 100)+'%';
+    face_box.style.left = ((leftF/width) * 100)+'%';
+    face_box.style.width = ((widthF/width) * 100)+'%';
+    face_box.style.height = ((heightF/height) * 100)+'%';
+}
+
+function eraseBound(idBox){
+    let face_box = document.getElementById(idBox);
+    face_box.style.border = '0px solid white';
+    face_box.style.top = '0px';
+    face_box.style.left = '0px';
+    face_box.style.width = '0px';
+    face_box.style.height = '0px';
+}
+
 /*  Set to display none all the paper tabs related to an img*/
 function displayNoneAllPaperTabs(imgName){
     let faceDetRecTab = document.getElementById('FaceDetRec_'+imgName);
@@ -167,6 +185,7 @@ var selector = $('.tabs').find('a').length;
 //var selector = $(".tabs").find(".selector");
 var activeItem = tabs.find('.active');
 var activeWidth = activeItem.innerWidth();
+
 $(".selector").css({
     "left": activeItem.position.left + "px",
     "width": activeWidth + "px"
@@ -186,3 +205,32 @@ function changeTab(clickedTab, selector, imgName){
         "width": activeWidth + "px"
     })
 }
+
+
+$(document).ready(function(){
+    /* Fix margin class of the combo img+ data analyser*/
+   if(document.body.clientWidth < 1024){
+        $('.marginWidget').removeClass('col-1');
+        $('.imgBox').removeClass('col-5');
+        $('.imgAnnBox').removeClass('col-5');
+        $('.imgBox').addClass('col-6');
+        $('.imgAnnBox').addClass('col-6');
+   }
+});
+
+$(window).resize(function(){
+    /* Fix margin class of the combo img+ data analyser*/
+    if(document.body.clientWidth < 1024){
+        $('.marginWidget').removeClass('col-1');
+        $('.imgBox').removeClass('col-5');
+        $('.imgAnnBox').removeClass('col-5');
+        $('.imgBox').addClass('col-6');
+        $('.imgAnnBox').addClass('col-6');
+    }else{
+        $('.marginWidget').addClass('col-1');
+        $('.imgBox').removeClass('col-6');
+        $('.imgAnnBox').removeClass('col-6');
+        $('.imgBox').addClass('col-5');
+        $('.imgAnnBox').addClass('col-5');
+    }
+});

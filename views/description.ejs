@@ -17,7 +17,7 @@
     <div class="mt-3 mb-3">
         <%=cat.name%>
         <div class="progress">
-            <div class="progress-bar bg-warning text-dark" role="progressbar" style="width: <%= Math.floor(cat.confidence*100)%>%>%;"
+            <div class="progress-bar bg-warning text-dark font-weight-bold" role="progressbar" style="width: <%= Math.floor(cat.confidence*100)%>%>%;"
                  aria-valuenow="<%= Math.floor(cat.confidence*100)%>" aria-valuemin="0" aria-valuemax="100">
                 <%= Math.floor(cat.confidence*100)%>%
             </div>
@@ -31,7 +31,7 @@
     <div class="mt-3 mb-3">
         <%=caption.text%>
         <div class="progress">
-            <div class="progress-bar bg-warning text-dark" role="progressbar" style="width: <%= Math.floor(caption.confidence*100)%>%>%;"
+            <div class="progress-bar bg-warning text-dark font-weight-bold" role="progressbar" style="width: <%= Math.floor(caption.confidence*100)%>%>%;"
                  aria-valuenow="<%= Math.floor(caption.confidence*100)%>" aria-valuemin="0" aria-valuemax="100">
                 <%= Math.floor(caption.confidence*100)%>%
             </div>

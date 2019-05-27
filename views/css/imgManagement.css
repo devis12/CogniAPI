@@ -80,23 +80,26 @@ h6{
 
 
 .squareLikelihood {
-    min-width: 8px;
-    min-height: 8px;
+    min-width: 6px;
+    min-height: 6px;
+    font-size: 6px;
     border: 0.5px solid black;
 }
 
 @media screen and (min-width: 768px) {
     .squareLikelihood {
-        min-width: 15px;
-        min-height: 15px;
+        min-width: 12px;
+        min-height: 12px;
+        font-size: 12px;
         border: 1px solid black;
     }
 }
 
 @media screen and (min-width: 1200px) {
     .squareLikelihood {
-        min-width: 30px;
-        min-height: 30px;
+        min-width: 18px;
+        min-height: 18px;
+        font-size: 18px;
         border: 1px solid black;
     }
 }

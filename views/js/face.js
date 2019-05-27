@@ -115,21 +115,3 @@ function train(loggedUser){
         }
     });
 }
-
-function boundFace(idBox, perc, width, height, topF, leftF, widthF, heightF){
-    let face_box = document.getElementById(idBox);
-    face_box.style.border = '5px solid red';
-    face_box.style.top = ((topF/height) * 100)+'%';
-    face_box.style.left = ((leftF/width) * 100)+'%';
-    face_box.style.width = ((widthF/width) * 100)+'%';
-    face_box.style.height = ((heightF/height) * 100)+'%';
-}
-
-function eraseFaceBound(idBox){
-    let face_box = document.getElementById(idBox);
-    face_box.style.border = '0px solid white';
-    face_box.style.top = '0px';
-    face_box.style.left = '0px';
-    face_box.style.width = '0px';
-    face_box.style.height = '0px';
-}

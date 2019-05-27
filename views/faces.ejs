@@ -22,12 +22,12 @@ user data (possibly a name+surname) she/he'll perform it bu clicking Recognize  
         for(face of imgAnnotated.cogniAPI.faces){
 %>
     <div class="alert-warning p-3 mt-2 mb-3 mr-5 ml-5"
-         onmouseover="boundFace(
+         onmouseover="drawBound(
                  'face_box_<%= imgAnnotated.imgName%>', 1, '<%= imgAnnotated.cogniAPI.metadata.width%>', '<%= imgAnnotated.cogniAPI.metadata.height%>',
                  '<%=face.faceRectangle.tl.y%>', '<%=face.faceRectangle.tl.x%>',
                  '<%=face.faceRectangle.width%>', '<%=face.faceRectangle.height%>',
                  )"
-         onmouseleave="eraseFaceBound('face_box_<%= imgAnnotated.imgName%>')"
+         onmouseleave="eraseBound('face_box_<%= imgAnnotated.imgName%>')"
     >
         <h5 class="mt-1">FACE_ID "<%=face.faceId%>"</h5>
         <% if(face.gender != undefined && face.age != undefined && face.glasses != undefined && face.smile != undefined){ %>
@@ -72,12 +72,12 @@ user data (possibly a name+surname) she/he'll perform it bu clicking Recognize  
                             <% i= 0%>
 
                             <% while(i<convertConfidenceLikelihood(face.emotions[emotion]['confidenceLabel'])){%>
-                                <span class="bg-warning squareLikelihood text-warning"> ___  </span>
+                                <span class="bg-warning squareLikelihood text-warning"> __ </span>
                                 <% i++;%>
                             <% }%>
 
                             <% while(i<5){%>
-                                <span class="bg-light squareLikelihood text-light"> ___ </span>
+                                <span class="bg-light squareLikelihood text-light"> __  </span>
                                 <% i++;%>
                             <% }%>
                         </div>

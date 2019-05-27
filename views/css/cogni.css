@@ -1,0 +1,33 @@
+@font-face {
+    font-family: "Ranga-Regular";
+    src: url("./fonts/Ranga-Regular.ttf");
+}
+
+@font-face {
+    font-family: "bjack";
+    src: url("./fonts/blackjack.otf");
+}
+
+body{
+    background-color: #fffef9;
+}
+
+@media screen and (min-width: 1200px) {
+
+}
+
+#frontTitle{
+    font-family: "Ranga-Regular";
+    font-size: 72px;
+}
+
+.footer{
+    display: none; /* display when document is ready */
+    font-family:bjack;
+    font-size: 20px;
+    bottom: 0;
+    position: fixed;
+    width: 100%;
+    height: 5%;
+}
+

@@ -56,3 +56,17 @@ function loadUploadBox(user){
         alert('Specify a username please!');
     }
 }
+
+$(document).ready(function(){
+    /*  Avoid use on smartphones*/
+    if(document.body.clientWidth < 768){
+        alert("This screen is too small! Highly suggested to use this widget on a laptop!");
+    }
+});
+
+$(window).resize(function(){
+    /* Avoid use on smartphones*/
+    if(document.body.clientWidth < 768){
+        //alert("This screen is too small! Highly suggested to use this widget on a wide and open window!");
+    }
+});

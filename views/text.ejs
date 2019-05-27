@@ -2,18 +2,18 @@
 
 <% for(txt of imgAnnotated.cogniAPI.texts){ %>
     <div    class="mt-3 mb-3"
-            onmouseover="boundFace(
+            onmouseover="drawBound(
                     'face_box_<%= imgAnnotated.imgName%>', 1, '<%= imgAnnotated.cogniAPI.metadata.width%>', '<%= imgAnnotated.cogniAPI.metadata.height%>',
                     '<%=txt.boundingBox.tl.y%>', '<%=txt.boundingBox.tl.x%>',
                     '<%=txt.boundingBox.width%>', '<%=txt.boundingBox.height%>',
                     )"
-            onmouseleave="eraseFaceBound('face_box_<%= imgAnnotated.imgName%>')">
+            onmouseleave="eraseBound('face_box_<%= imgAnnotated.imgName%>')">
         <%=txt.name%>
         <% if(txt.locale && txt.locale != ''){ %>
             <span class="font-italic text-info">(locale = <%= txt.locale%>)</span>
         <% } %>
         <div class="progress">
-            <div class="progress-bar bg-info" role="progressbar" style="width: <%= Math.floor(txt.confidence*100)%>%>%;"
+            <div class="progress-bar bg-info font-weight-bold" role="progressbar" style="width: <%= Math.floor(txt.confidence*100)%>%>%;"
                  aria-valuenow="<%= Math.floor(txt.confidence*100)%>" aria-valuemin="0" aria-valuemax="100">
                 <%= Math.floor(txt.confidence*100)%>%
             </div>

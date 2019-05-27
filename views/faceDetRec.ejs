@@ -5,12 +5,12 @@ user data (possibly a name+surname) she/he'll perform it bu clicking Recognize  
         for(face of imgAnnotated.cogniAPI.faces){
 %>
     <div class="row alert-warning p-3 mt-2 mb-3 mr-5 ml-5"
-         onmouseover="boundFace(
+         onmouseover="drawBound(
                  'face_box_<%= imgAnnotated.imgName%>', 1, '<%= imgAnnotated.cogniAPI.metadata.width%>', '<%= imgAnnotated.cogniAPI.metadata.height%>',
                  '<%=face.faceRectangle.tl.y%>', '<%=face.faceRectangle.tl.x%>',
                  '<%=face.faceRectangle.width%>', '<%=face.faceRectangle.height%>',
                  )"
-         onmouseleave="eraseFaceBound('face_box_<%= imgAnnotated.imgName%>')"
+         onmouseleave="eraseBound('face_box_<%= imgAnnotated.imgName%>')"
     >
         <p class="mt-1">
             <h5>FACE_ID "<%=face.faceId%>"</h5>

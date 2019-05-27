@@ -5,9 +5,9 @@
 
 <body>
 
-    <nav class="navbar navbar-light bg-light">
-        <a id="homeLink" class="navbar-brand font-weight-bold" href="#">
-            <img src="/img/logo.png" width="30" height="30" class="d-inline-block align-top" alt="">
+    <nav class="navbar navbar-light bg-dark">
+        <a id="homeLink" class="navbar-brand font-weight-bold text-light" href="#">
+            <img src="/img/logo_white.png" width="30" height="30" class="d-inline-block align-top" alt="">
             CogniAPI
         </a>
         <script>
@@ -17,7 +17,7 @@
                 document.getElementById('homeLink').href = 'http://' + window.location.hostname + ':' + window.location.port;
         </script>
 
-        <a id="homeLink" class="navbar-brand font-weight-bold align-content-end" href="#">
+        <a id="homeLink" class="navbar-brand font-weight-bold align-content-end text-light" href="#">
             <%= user%>
         </a>
     </nav>
@@ -28,8 +28,11 @@
         <div class="row mt-3 mb-3">
             <div class="col-2">
             </div>
-            <div class="col-8 text-center">
-                <h1>CogniAPI widget</h1>
+            <div id="frontTitle" class="col-8 text-center text-info">
+                <p>
+                    CogniAPI widget
+                </p>
+
             </div>
             <div class="col-2">
             </div>
@@ -44,7 +47,6 @@
             </div>
         <%      imgAnnotations = null;
             }
-
         %>
 
         <%# If imgAnnotations equals to null, no images to load,
@@ -61,6 +63,10 @@
         <% }%>
 
     </div>
+
+    <footer class="footer bg-dark text-white text-center">
+        <div class="container-fluid mt-2">© 2019 Copyright: Dal Moro Devis</div>
+    </footer>
 
     <%- include('generic_js'); %>
 </body>
