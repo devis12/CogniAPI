@@ -246,13 +246,23 @@ router.get('/azure/faces/train/:loggedUser/status', (req, res) => {
     if(loggedUser){
         azureLogic.checkTrainingStatus(loggedUser)
             .then( trainStatus => {
-                let trainingObj = {
-                    trainingStatus: trainStatus.status || trainStatus.error['code'] || (trainStatus.error['statusCode'] == 429)? 'RateLimitExceeded':null,
-                    createdDateTime: trainStatus.createdDateTime,
-                    lastActionDateTime: trainStatus.lastActionDateTime,
-                    message: (trainStatus.status)? trainStatus.message : trainStatus.error['message'],
-                    lastSuccessfulTrainingDateTime: trainStatus.lastSuccessfulTrainingDateTime
-                };
+                
+                let trainingObj = {};
+
+                if(trainStatus.status)
+                    trainingObj['trainingStatus'] = trainStatus.status;
+                else if(trainStatus.error['statusCode'] == 429)
+                    trainingObj['trainingStatus'] = 'RateLimitExceeded';
+                else if(trainStatus.error['code'])
+                    trainingObj['trainingStatus'] = trainStatus.error['code'];
+                else
+                    trainingObj['trainingStatus'] = null;
+
+                trainingObj['createdDateTime'] = trainStatus.createdDateTime;
+                trainingObj['lastActionDateTime'] = trainStatus.lastActionDateTime;
+                trainingObj['message'] = (trainStatus.status)? trainStatus.message : trainStatus.error['message'];
+                trainingObj['lastSuccessfulTrainingDateTime'] = trainStatus.lastSuccessfulTrainingDateTime;
+
                 res.status(200).send(trainingObj);
             })
             .catch(e => {
