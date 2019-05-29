@@ -29,7 +29,7 @@ describe('Check if server is up && app is defined', async () => {
             .then(r => {
                 expect(r.status).toBe(200);
                 return r.json().then(data => {
-                    expect(data.msg).toBe('CogniAPI: up & running!');
+                    expect(data.responseStatus.msg).toBe('CogniAPI: up & running!');
                 });
             });
 

@@ -20,7 +20,7 @@ router.get('/status', (req, res) => {
                 responseStatus: {
                     status: 200,
                     code: 'OK',
-                    msg: 'Server up & Running'
+                    msg: data
                 }
             });
         })
