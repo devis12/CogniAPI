@@ -1,0 +1,5 @@
+before_script: 
+  - chmod u+x ./utils/setup.sh && ./utils/setup.sh
+language: node_js
+node_js: 
+  - "8"
