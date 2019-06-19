@@ -73,7 +73,7 @@ function buildDescriptionObj(gCloudV, azureCV){
     //process to add tags retrieved in azure computer vision and google cloud vision tag fields into generic_tags (just tag names)
     tags = uniqueTagNames(tags, tagsConfidence);
 
-    descr['generic_tags'] = [tags];
+    descr['generic_tags'] = tags;
 
     return descr;
 }

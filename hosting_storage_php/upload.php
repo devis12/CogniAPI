@@ -71,7 +71,7 @@
                 //Setup our new file path
                 $ext = substr($_FILES['file'.$i]['name'], strripos($_FILES['file'.$i]['name'],'.') + 1);//file extensions
                 
-                if($ext == "JPG" || $ext == "jpg" || $ext == "JPEG" || $ext == "jpeg" || $ext == "png"){//upload just jpg or png
+                if($ext == "JPG" || $ext == "jpg" || $ext == "JPEG" || $ext == "jpeg" || $ext == "png" || $ext == "gif"){//upload just jpg or png
                         
                     $newFilePath = "./storage/".generateRandomString().".".$ext ;
                     
