@@ -265,7 +265,7 @@ function batchAnnFilterOn(imgAnnotations, filterOn){
 /*  FilterOnEmotion will decide which annotations to filter out based on the passed emotion
     and a given threshold emotionscore
 * */
-function batchAnnFilterOnEmotion(imgAnnotations, emotion, emotionScore){
+function batchAnnFilterOnEmotion(imgAnnotations, emotion){
     let imgAnnotationsFiltered = [];
 
     for(let imgAnn of imgAnnotations) { // iterate over all the possible image annotations
@@ -274,7 +274,7 @@ function batchAnnFilterOnEmotion(imgAnnotations, emotion, emotionScore){
 
             for(let face of imgAnn.faces){ //for each image annotation iterate over all the faces detected in it, until eventually you find one which match with the requested emotion
                 if( face.emotions && face.emotions[emotion] &&
-                    face.emotions[emotion]['confidence'] > emotionScore){
+                    (face.emotions[emotion] == 'LIKELY' || face.emotions[emotion] == 'VERY_LIKELY')){
                     imgAnnotationsFiltered.push(imgAnn); // found a face which match the requested emtion -> push the entire img annotation in the filtered results
                     break; // exit from the cycle and go the next imgAnn, because you found at least a face which matches the requested emotion
                 }

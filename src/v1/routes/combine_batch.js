@@ -8,6 +8,10 @@
 const express = require('express');
 const router = express.Router();
 
+
+//combine logic implemented in a module apart
+const cogniCombine = require('../logic/combine_logic');
+
 //combine logic implemented in a module apart
 const cogniCombineBatch = require('../logic/combine_logic_batch');
 
@@ -38,11 +42,8 @@ router.get('/analyse/batch/:token', (req, res) => {
                 let batchResultsFiltered;
                 let emotion = req.query.emotion;
                 if(emotion){ // filter by emotion
-                    let emotionScore = Number.parseFloat(req.query.emotionscore); //threshold
-                    if(Number.isNaN(emotionScore) || emotionScore < 0 || emotionScore > 1)
-                        emotionScore = 0.75;//with invalid input or without the param just keep 0.75 as default
 
-                    batchResultsFiltered = cogniCombineBatch.batchAnnFilterOnEmotion(batchResults, emotion, emotionScore);
+                    batchResultsFiltered = cogniCombineBatch.batchAnnFilterOnEmotion(batchResults, emotion);
                     res.status(200).json(batchResultsFiltered);
 
                 }else
@@ -64,11 +65,8 @@ router.get('/analyse/batch/:token/faces', (req, res) => {
                 let batchResultsFiltered;
                 let emotion = req.query.emotion;
                 if(emotion){ // filter by emotion
-                    let emotionScore = Number.parseFloat(req.query.emotionscore); //threshold
-                    if(Number.isNaN(emotionScore) || emotionScore < 0 || emotionScore > 1)
-                        emotionScore = 0.75;//with invalid input or without the param just keep 0.75 as default
 
-                    batchResultsFiltered = cogniCombineBatch.batchAnnFilterOnEmotion(batchResults, emotion, emotionScore);
+                    batchResultsFiltered = cogniCombineBatch.batchAnnFilterOnEmotion(batchResults, emotion);
                     res.status(200).json(batchResultsFiltered);
 
                 }else

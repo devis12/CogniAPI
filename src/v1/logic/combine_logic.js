@@ -189,4 +189,11 @@ function encodeB64Annotation(username, imgAnnotations){
 }
 
 
-module.exports = {multipleAnalysisRemoteImage, imagesAnn, encodeB64Annotation};
+function isLikelihoodValue(likelihood){
+    return  !likelihood &&
+            likelihood=='UNKNOWN' || likelihood=='VERY_UNLIKELY' || likelihood=='UNLIKELY' ||
+            likelihood=='POSSIBLE' || likelihood=='LIKELY' || likelihood=='VERY_LIKELY';
+}
+
+
+module.exports = {multipleAnalysisRemoteImage, imagesAnn, encodeB64Annotation, isLikelihoodValue};

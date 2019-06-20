@@ -151,6 +151,47 @@ function azureFilterTags(azureJson, minScore){
     return retObj;
 }
 
+/*  Given an array of tags combine the ones with the same name averaging the confidence values */
+function combineTagsArray(tags){
+    //move all the tags name to lower case
+    for(let t of tags){
+        t['name'] = t['name'].toLowerCase();
+    }
+
+    // sort by name
+    tags.sort((a, b) => {
+        if(a['name']>b['name'])
+            return 1;
+        else if(a['name']==b['name'])
+            return 0;
+        else
+            return -1;
+    });
+
+    let tags_combine = []; // combine multiple occurences by averaging the confidence scores
+    //combine multiple tags with same name in a single one
+    for(let i=0; i<tags.length-1; i++){
+        let t = tags[i];
+
+        let total_confidence = tags[i]['confidence'];//confidence sum in order to compute the avg
+        let num_of_tags = 1;//num of taken tags in order to compute the avg
+
+        while(i<tags.length && tags[i]['name']==tags[i+1]['name']){
+            if(!tags[i]['mid'] && tags[i+1]['mid'] != null) // don't drop the mid value
+                t['mid'] = tags[i+1]['mid'];
+
+            total_confidence += tags[i+1]['confidence'];
+            num_of_tags++;
+
+            i++;
+        }
+
+        t['confidence'] = total_confidence/num_of_tags;
+        tags_combine.push(t);
+    }
+
+    return tags_combine;
+}
 
 /*  Starting from google cloud vision and azure computer vision objects
     build a common tag objects (given also a minimum confidence threshold)
@@ -169,23 +210,10 @@ function buildTagsObj(gCloudV, azureCV, minScore = 0.0, sortCat = 'confidence'){
         tags = tags.concat(azureTags['tags']);
     }
 
-    //move all the tags name to lower case
-    for(let t of tags){
-        t['name'] = t['name'].toLowerCase();
-    }
+    tags = combineTagsArray(tags);// build an array where labels regarding the same exact tags are combined with averaged confidence + order by name
 
-    // sort by sortCat
-    if(sortCat == 'name')
-        tags.sort((a, b) => {
-            if(a[sortCat]>b[sortCat])
-                return 1;
-            else if(a[sortCat]==b[sortCat])
-                return 0;
-            else
-                return -1;
-        });
 
-    else if(sortCat == 'confidence')//put highest confidence values before
+    if(sortCat == 'confidence')//put highest confidence values before
         tags.sort((a, b) => {
             if(a[sortCat]>b[sortCat])
                 return -1;
@@ -196,6 +224,46 @@ function buildTagsObj(gCloudV, azureCV, minScore = 0.0, sortCat = 'confidence'){
         });
 
     return tags;
+}
+
+/*  Given an array of landmarks combine the ones with the same name averaging the confidence values and sort them by name */
+function combineLandmarksArray(landmarks){
+    let landmarks_combine = []; // combine multiple occurences by averaging the confidence scores
+    // sort by name
+    landmarks.sort((a, b) => {
+        if(a['name']>b['name'])
+            return 1;
+        else if(a['name']==b['name'])
+            return 0;
+        else
+            return -1;
+    });
+    //combine multiple tags with same name in a single one
+    for(let i=0; i<landmarks.length-1; i++){
+        let l = landmarks[i];
+        if(landmarks[i]['name'].toLowerCase()==landmarks[i+1]['name'].toLowerCase()){
+
+            //basically all needed checks in order to select the gcloud obj and just make the avg with the tag offered by azure
+
+            if(!landmarks[i]['mid'] && landmarks[i+1]['mid'] != null ) // don't drop mid value
+                l['mid'] = tags[i+1]['mid'];
+
+            if(!landmarks[i]['latitude'] && landmarks[i+1]['latitude'] != null ) //don't drop latitude value
+                l['latitude'] = tags[i+1]['latitude'];
+
+            if(!landmarks[i]['longitude'] && landmarks[i+1]['longitude'] != null ) //don't drop longitude value
+                l['longitude'] = tags[i+1]['longitude'];
+
+            if(!landmarks[i]['boundingBox'] && landmarks[i+1]['boundingBox'] != null ) //don't drop latitude value
+                l['boundingBox'] = tags[i+1]['boundingBox'];
+
+            l['confidence'] = (landmarks[i]['confidence'] + landmarks[i+1]['confidence'])/2;
+            i++;// landmarks[i] and landmarks[i+1] are already combined in a single obj
+        }
+        landmarks_combine.push(l);
+    }
+
+    return landmarks_combine;
 }
 
 /*  Providing the object returned by azure computer vision
@@ -256,6 +324,9 @@ function buildLandmarksObj(gCloudV, azureCV, minScore = 0.0){
         landmarks = landmarks.concat(azureCVLandmarks);
     }
 
+    if(gCloudV && gCloudV['landmarkAnnotations'] && gCloudV['landmarkAnnotations'].length < landmarks.length)//we picked landmarks tag from azure & google cloud
+        landmarks = combineLandmarksArray(landmarks);//combine azure landmark tags with google ones
+
     landmarks.sort((a, b) => {
         if(a['confidence']>b['confidence'])
             return -1;
@@ -268,6 +339,98 @@ function buildLandmarksObj(gCloudV, azureCV, minScore = 0.0){
     return landmarks;
 }
 
+/*  Giving two objects with their bounding box calc the overlap value*/
+function objectsOverlap(obj1, obj2){
+    let obj1_b = obj1['boundingBox'];
+    let obj2_b = obj2['boundingBox'];
+
+    if(!obj1_b || !obj2_b)//one of the two objs has no bounding box
+        return 0;
+
+    //first consider the case in which the overlap is not possible, so the result is 0
+    if(obj1_b['br']['x'] < obj2_b['bl']['x'] || obj1_b['bl']['x'] > obj2_b['br']['x'])//considering x
+    // when the gFaceRect finished before the start of azure one (or the opposite)
+        return 0;
+
+    else if(obj1_b['bl']['y'] < obj2_b['tl']['y'] || obj1_b['tl']['y'] > obj2_b['bl']['y'])//considering y
+    // when the gFaceRect finished before the start of azure one (or the opposite)
+        return 0;
+
+    else{ //there is an overlap
+
+        // remind that
+        //  - x goes from 0 -> N (left -> right)
+        //  - y goes from 0 -> N (top -> bottom)
+        let xc1 = Math.max(obj1_b['bl']['x'], obj2_b['bl']['x']);
+        let xc2 = Math.min(obj1_b['br']['x'], obj2_b['br']['x']);
+        let yc1 = Math.max(obj1_b['bl']['y'], obj2_b['bl']['y']);
+        let yc2 = Math.min(obj1_b['tl']['y'], obj2_b['tl']['y']);
+        let xg1 = obj1_b['bl']['x'];
+        let xg2 = obj1_b['br']['x'];
+        let yg1 = obj1_b['bl']['y'];
+        let yg2 = obj1_b['tl']['y'];
+
+        let areaO = (xc2-xc1) * (yc2 - yc1); //area covered by the overlapping
+        let areaI = (xg2-xg1) * (yg2 - yg1); //area covered by the first bounding box
+
+        return areaO/areaI;
+    }
+}
+
+/*  Return objects where all the element referring to the same object are clusterized in a single one
+*   by averaging the confidence value*/
+function combineObjectsArray(objects){
+
+    if(objects.length == 1)//nothing to combine
+        return objects;
+
+    //move all the objects name to lower case
+    for(let o of objects){
+        o['name'] = o['name'].toLowerCase();
+    }
+
+    let taken = [];//taken[i]=true <=> objects[i] has been already considered
+    taken.fill(false, 0, objects.length);
+
+    let combine_objects = [];
+    for(let i=0; i<objects.length-1; i++){
+        if(!taken[i]){//see if the object has been already clusterized in another previous one
+
+            taken[i] = true;
+            let obj = objects[i]; //obj = final clusterized objects
+
+            //these two variables will help in order to perform the final avg between al the confidence values
+            let total_confidence = objects[i]['confidence'];
+            let n_taken_objects = 1;
+
+            for(let j=1; j<objects.length;j++) {
+
+                if(!taken[j] && objects[i]['name'] == objects[j]['name']){ // check if the element has not already been clusterized and if they have the same name
+                    let overlap = objectsOverlap(objects[i], objects[j]);//overlap percentage between objects[i] & objects[j]
+
+                    if (overlap > 0.9) {//considering the same obj if they have a high overlap value
+
+                        taken[j] = true;
+                        if (!objects[i]['mid'] && objects[j]['mid'] != null) // don't drop the mid value
+                            obj['mid'] = objects[j]['mid'];
+
+                        total_confidence += objects[j]['confidence'];
+                        n_taken_objects++;
+                    }
+                }
+
+            }
+
+            obj['confidence'] = (total_confidence) / n_taken_objects; //compute the confidence avg
+
+            combine_objects.push(obj);
+        }
+
+    }
+
+    return combine_objects;
+
+}
 
 /*  Starting from google cloud vision and azure computer vision objects
     build a common objects array (given also a minimum confidence threshold)
@@ -311,6 +474,8 @@ function buildObjectsObj(gCloudV, azureCV, minScore = 0.0){
             }
         }
     }
+
+    objects = combineObjectsArray(objects);// build an array where labels regarding the same exact object are combined with averaged confidence
 
     objects.sort((a, b) => {
         if(a['confidence']>b['confidence'])

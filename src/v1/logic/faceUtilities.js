@@ -244,17 +244,49 @@ function buildFacesObjComplete(gcloudFaces, azureFaces){
     return faces;
 }
 
+/*  Commodity function in order to translate enum gcloud likelihood values related to emotion properties into double to perform avg with azure data*/
+function likelihoodToDouble(likelihood){
+    if(likelihood == 'VERY_UNLIKELY')
+        return 0.1;
+    else if(likelihood == 'UNLIKELY')
+        return 0.3;
+    else if(likelihood == 'POSSIBLE')
+        return 0.5;
+    else if(likelihood == 'LIKELY')
+        return 0.7;
+    else if(likelihood == 'VERY_LIKELY')
+        return 0.9;
+    else//UNKNOWN or general error
+        return -1;
+}
+
+/*  Commodity function in order to translate double into enum gcloud likelihood values related to emotion properties to perform avg with azure data*/
+function doubletoLikelihood(confidence){
+    if(confidence <= 0.2)
+        return 'VERY_UNLIKELY';
+    else if(confidence <= 0.4)
+        return 'UNLIKELY';
+    else if(confidence <= 0.6)
+        return 'POSSIBLE';
+    else if(confidence <= 0.8)
+        return 'LIKELY';
+    else if(confidence <= 1.0)
+        return 'VERY_LIKELY';
+    else//UNKNOWN or general error
+        return 'UNKNOWN';
+}
+
 /*  Build an empty emotion json object*/
 function emptyEmotionObj(){
     return {
-        'anger': {},
-        'contempt': {},
-        'disgust': {},
-        'fear': {},
-        'happiness': {},
-        'neutral': {},
-        'sadness': {},
-        'surprise': {}
+        'anger': null,
+        'contempt': null,
+        'disgust': null,
+        'fear': null,
+        'happiness': null,
+        'neutral': null,
+        'sadness': null,
+        'surprise': null
     };
 }
 
@@ -272,14 +304,15 @@ function populateFaceObjAzure(face, azureFace){
     if(!face['emotions'])
         face['emotions'] = emptyEmotionObj();
 
-    face['emotions']['anger']['confidence'] = azureFace['faceAttributes']['emotion']['anger'];
-    face['emotions']['contempt']['confidence'] = azureFace['faceAttributes']['emotion']['contempt'];
-    face['emotions']['disgust']['confidence'] = azureFace['faceAttributes']['emotion']['disgust'];
-    face['emotions']['fear']['confidence'] = azureFace['faceAttributes']['emotion']['fear'];
-    face['emotions']['happiness']['confidence'] = azureFace['faceAttributes']['emotion']['happiness'];
-    face['emotions']['neutral']['confidence'] = azureFace['faceAttributes']['emotion']['neutral'];
-    face['emotions']['sadness']['confidence'] = azureFace['faceAttributes']['emotion']['sadness'];
-    face['emotions']['surprise']['confidence'] = azureFace['faceAttributes']['emotion']['surprise'];
+    face['emotions']['anger'] = doubletoLikelihood(azureFace['faceAttributes']['emotion']['anger']);
+    face['emotions']['contempt'] = doubletoLikelihood(azureFace['faceAttributes']['emotion']['contempt']);
+    face['emotions']['disgust'] = doubletoLikelihood(azureFace['faceAttributes']['emotion']['disgust']);
+    face['emotions']['fear'] = doubletoLikelihood(azureFace['faceAttributes']['emotion']['fear']);
+    face['emotions']['happiness'] = doubletoLikelihood(azureFace['faceAttributes']['emotion']['happiness']);
+    face['emotions']['neutral'] = doubletoLikelihood(azureFace['faceAttributes']['emotion']['neutral']);
+    face['emotions']['sadness'] = doubletoLikelihood(azureFace['faceAttributes']['emotion']['sadness']);
+    face['emotions']['surprise'] = doubletoLikelihood(azureFace['faceAttributes']['emotion']['surprise']);
+
 
     face['hair'] = azureFace['faceAttributes']['hair'];
     face['facialHair'] = azureFace['faceAttributes']['facialHair'];
@@ -287,8 +320,8 @@ function populateFaceObjAzure(face, azureFace){
     face['accessories'] = azureFace['faceAttributes']['accessories'];
     face['occlusion'] = azureFace['faceAttributes']['occlusion'];
     face['makeup'] = azureFace['faceAttributes']['makeup'];
-    face['blur'] = azureFace['faceAttributes']['blur'];
-    face['exposure'] = azureFace['faceAttributes']['exposure'];
+    face['blurredLikelihood'] = doubletoLikelihood(azureFace['faceAttributes']['blur']['value']);
+    face['underExposedLikelihood'] = doubletoLikelihood(1-azureFace['faceAttributes']['exposure']['value']);
 
     face['headPose'] = {};
     face['headPose']['rollAngle'] = azureFace['faceAttributes']['headPose']['roll'];
@@ -305,25 +338,51 @@ function populateFaceObjGcloud(face, gFace) {
     if (!face['faceRectangle'])
         face['faceRectangle'] = gFace['cogniFaceRect'];
 
-    if (!face['blur'])
-        face['blur'] = {};
-    face['blur']['blurredLikelihood'] = gFace['blurredLikelihood'];
+    //blurred likelihood
+    if (face['blurredLikelihood'])
+        face['blurredLikelihood'] = doubletoLikelihood(
+    (likelihoodToDouble(gFace['blurredLikelihood'])
+                +
+              gFace['azureData']['faceAttributes']['blur']['value']
+            )
+          /2);
+    else
+        face['blurredLikelihood'] = gFace['blurredLikelihood'];
 
-    if (!face['exposure'])
-        face['exposure'] = {};
-    face['exposure']['underExposedLikelihood'] = gFace['underExposedLikelihood'];
+    //exposure likelihood
+    if (face['underExposedLikelihood'])
+        face['underExposedLikelihood'] = doubletoLikelihood(
+            (likelihoodToDouble(gFace['underExposedLikelihood'])
+                        +
+                      (1-gFace['azureData']['faceAttributes']['exposure']['value'])
+                      )
+           /2);
+    else
+        face['underExposedLikelihood'] = gFace['underExposedLikelihood'];
 
-    if (!face['emotions'])
+
+    if (!face['emotions']) {
         face['emotions'] = emptyEmotionObj();
 
-    face['emotions']['anger']['confidenceLabel'] = gFace['angerLikelihood'];
-    face['emotions']['contempt']['confidenceLabel'] = undefined;
-    face['emotions']['disgust']['confidenceLabel'] = undefined;
-    face['emotions']['fear']['confidenceLabel'] = undefined;
-    face['emotions']['happiness']['confidenceLabel'] = gFace['joyLikelihood'];
-    face['emotions']['neutral']['confidenceLabel'] = undefined;
-    face['emotions']['sadness']['confidenceLabel'] = gFace['sorrowLikelihood'];
-    face['emotions']['surprise']['confidenceLabel'] = gFace['surpriseLikelihood'];
+        face['emotions']['anger'] = gFace['angerLikelihood'];
+        face['emotions']['contempt'] = 'UNKNOWN';
+        face['emotions']['disgust'] = 'UNKNOWN';
+        face['emotions']['fear'] = 'UNKNOWN';
+        face['emotions']['happiness'] = gFace['joyLikelihood'];
+        face['emotions']['neutral'] = 'UNKNOWN';
+        face['emotions']['sadness'] = gFace['sorrowLikelihood'];
+        face['emotions']['surprise'] = gFace['surpriseLikelihood'];
+    }else{
+
+        face['emotions']['anger'] = doubletoLikelihood((gFace['azureData']['faceAttributes']['emotion']['anger'] + likelihoodToDouble(gFace['angerLikelihood']))/2);
+        face['emotions']['contempt'] = (face['emotions']['contempt'])? face['emotions']['contempt']:'UNKNOWN';
+        face['emotions']['disgust'] = (face['emotions']['disgust'])? face['emotions']['disgust']:'UNKNOWN';
+        face['emotions']['fear'] = (face['emotions']['fear'])? face['emotions']['fear']:'UNKNOWN';
+        face['emotions']['happiness'] = doubletoLikelihood((gFace['azureData']['faceAttributes']['emotion']['happiness'] + likelihoodToDouble(gFace['joyLikelihood']))/2);
+        face['emotions']['neutral'] = (face['emotions']['neutral'])? face['emotions']['neutral']:'UNKNOWN';
+        face['emotions']['sadness'] = doubletoLikelihood((gFace['azureData']['faceAttributes']['emotion']['sadness'] + likelihoodToDouble(gFace['sorrowLikelihood']))/2);
+        face['emotions']['surprise'] = doubletoLikelihood((gFace['azureData']['faceAttributes']['emotion']['surprise'] + likelihoodToDouble(gFace['surpriseLikelihood']))/2);
+    }
 
     //consider in every case headPose and lanmarks provided by google cloud better than the ones provided by azure
     face['headPose'] = {};

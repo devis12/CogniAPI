@@ -6,25 +6,63 @@
 *   @author: Devis
 */
 
+/*  Commodity function in order to translate enum gcloud likelihood values related to safety properties into double to perform avg with azure data*/
+function likelihoodtoDouble(likelihood){
+    if(likelihood == 'VERY_UNLIKELY')
+        return 0.1;
+    else if(likelihood == 'UNLIKELY')
+        return 0.3;
+    else if(likelihood == 'POSSIBLE')
+        return 0.5;
+    else if(likelihood == 'LIKELY')
+        return 0.7;
+    else if(likelihood == 'VERY_LIKELY')
+        return 0.9;
+    else//UNKNOWN or general error
+        return -1;
+}
+
+/*  Commodity function in order to translate double into enum gcloud likelihood values related to safety properties to perform avg with azure data*/
+function doubletoLikelihood(confidence){
+    if(confidence <= 0.2)
+        return 'VERY_UNLIKELY';
+    else if(confidence <= 0.4)
+        return 'UNLIKELY';
+    else if(confidence <= 0.6)
+        return 'POSSIBLE';
+    else if(confidence <= 0.8)
+        return 'LIKELY';
+    else if(confidence <= 1.0)
+        return 'VERY_LIKELY';
+    else//UNKNOWN or general error
+        return 'UNKNOWN';
+}
+
+
 
 /*  Build a unique single safety field tag from azure and google cloud data
     (same schema independent of considered property)
 * */
 function buildSafetyField(gcloudSafetyAnn, azureAdult, property){
-    //property string starting with capital letter
-    let propertyC = property.substr(0,1).toUpperCase() + property.substr(1,property.length-1);
-    let safetyField = {};
+
+    let likelihoodValue = null;
 
     if(gcloudSafetyAnn){ // we've data from gcloud vision
-        safetyField['confidenceLikelihood'] = gcloudSafetyAnn[property];
+        likelihoodValue = gcloudSafetyAnn[property];
     }
 
-    if(azureAdult){ // we've data from azure computer vision
-        safetyField['present'] = azureAdult['is' + propertyC + 'Content'];
-        safetyField['confidence'] = azureAdult[property + 'Score'];
+    if(azureAdult && azureAdult[property + 'Score']){ // we've data from azure computer vision
+
+        if(likelihoodValue)//perform the avg by considering real value and then go back to the euristic likelihood metric offered by gcloud
+            likelihoodValue = doubletoLikelihood((likelihoodtoDouble(likelihoodValue) + azureAdult[property + 'Score'])/2);
+        else
+            likelihoodValue = doubletoLikelihood(azureAdult[property + 'Score']);
     }
 
-    return safetyField;
+    if(!likelihoodValue)
+        likelihoodValue = 'UNKNOWN';
+
+    return likelihoodValue;
 }
 
 /*  Build cogniAPI safety obj provided azure adult & google cloud
