@@ -6,6 +6,9 @@
 *   @author: Devis
 */
 
+//in order to read env variables
+require('dotenv').config();
+
 /*  given azure face rectangle:
     width, height, top, left
     return object of vertex{bl:{x, y}, br:{x,y}, ...}
@@ -312,6 +315,20 @@ function populateFaceObjAzure(face, azureFace){
     face['emotions']['neutral'] = doubletoLikelihood(azureFace['faceAttributes']['emotion']['neutral']);
     face['emotions']['sadness'] = doubletoLikelihood(azureFace['faceAttributes']['emotion']['sadness']);
     face['emotions']['surprise'] = doubletoLikelihood(azureFace['faceAttributes']['emotion']['surprise']);
+
+    if(process.env.benchmark_emotion) { //in order to perform a good benchmark emotion respond also with the original emotion values
+
+        face['azureEmotions'] = {};
+        face['azureEmotions']['anger'] = azureFace['faceAttributes']['emotion']['anger'];
+        face['azureEmotions']['contempt'] = azureFace['faceAttributes']['emotion']['contempt'];
+        face['azureEmotions']['disgust'] = azureFace['faceAttributes']['emotion']['disgust'];
+        face['azureEmotions']['fear'] = azureFace['faceAttributes']['emotion']['fear'];
+        face['azureEmotions']['happiness'] = azureFace['faceAttributes']['emotion']['happiness'];
+        face['azureEmotions']['neutral'] = azureFace['faceAttributes']['emotion']['neutral'];
+        face['azureEmotions']['sadness'] = azureFace['faceAttributes']['emotion']['sadness'];
+        face['azureEmotions']['surprise'] = azureFace['faceAttributes']['emotion']['surprise'];
+
+    }
 
 
     face['hair'] = azureFace['faceAttributes']['hair'];
