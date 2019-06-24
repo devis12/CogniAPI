@@ -171,7 +171,7 @@ router.post('/azure/faces/:loggedUser', (req, res) => {
                 res.status(400).json({responseStatus:{status: 400, msg: 'Invalid Data', code: 'Bad Request'}});
             });
     }else{
-        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
+        res.status(400).json({responseStatus:{status: 400, msg: 'Parameters are missing', code: 'Bad Request'}});
     }
 
 });
@@ -192,7 +192,7 @@ router.patch('/azure/faces/:loggedUser', (req, res) => {
                 res.status(400).json({responseStatus:{status: 400, msg: 'Invalid Data', code: 'Bad Request'}});
             });
     }else{
-        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
+        res.status(400).json({responseStatus:{status: 400, msg: 'Parameters are missing', code: 'Bad Request'}});
     }
 
 });
@@ -212,7 +212,7 @@ router.delete('/azure/faces/:loggedUser', (req, res) => {
                 res.status(400).json({responseStatus:{status: 400, msg: 'Invalid Data', code: 'Bad Request'}});
             });
     }else{
-        res.status(400).json({responseStatus:{status: 400, msg: 'url parameter is missing', code: 'Bad Request'}});
+        res.status(400).json({responseStatus:{status: 400, msg: 'Parameters are missing', code: 'Bad Request'}});
     }
 
 });

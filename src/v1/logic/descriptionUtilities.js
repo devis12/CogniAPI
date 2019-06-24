@@ -169,6 +169,7 @@ function combineTagsArray(tags){
     });
 
     let tags_combine = []; // combine multiple occurences by averaging the confidence scores
+
     //combine multiple tags with same name in a single one
     for(let i=0; i<tags.length-1; i++){
         let t = tags[i];
@@ -176,7 +177,7 @@ function combineTagsArray(tags){
         let total_confidence = tags[i]['confidence'];//confidence sum in order to compute the avg
         let num_of_tags = 1;//num of taken tags in order to compute the avg
 
-        while(i<tags.length && tags[i]['name']==tags[i+1]['name']){
+        while(i<tags.length-1 && tags[i]['name']==tags[i+1]['name']){
             if(!tags[i]['mid'] && tags[i+1]['mid'] != null) // don't drop the mid value
                 t['mid'] = tags[i+1]['mid'];
 
